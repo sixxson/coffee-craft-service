@@ -1,53 +1,40 @@
 import { Request, Response } from "express";
-import {
-  createProduct,
-  getAllProducts,
-  getProductById,
-  updateProduct,
-  deleteProduct,
-} from "../services/product.service";
+import { PrismaClient } from "@prisma/client";
 
-export const createProductHandler = async (req: Request, res: Response) => {
+const prisma = new PrismaClient();
+
+export const getProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const search = req.query.search?.toString();
+  const products = await prisma.products.findMany({
+    where: {
+      name: {
+        contains: search,
+      },
+    },
+  });
+  res.json(products);
+};
+
+export const createProduct = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const product = await createProduct(req.body);
+    const { productId, name, price, rating, stockQuantity } = req.body;
+    const product = await prisma.products.create({
+      data: {
+        productId,
+        name,
+        price,
+        rating,
+        stockQuantity,
+      },
+    });
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: "Error creating product" });
   }
-};
-
-export const getAllProductsHandler = async (_req: Request, res: Response) => {
-  try {
-    const products = await getAllProducts();
-    res.status(200).json(products);
-  } catch (error) {
-    res.status(500).json({ message: "Error getting products" });
-  }
-};
-
-export const getProductByIdHandler = async (
-  req: Request,
-  res: Response
-): Promise<any> => {
-  const product = await getProductById(req.params.id);
-  if (!product) {
-    return res.status(404).json({ message: "Product not found" });
-  }
-  return res.status(200).json(product);
-};
-
-export const updateProductHandler = async (req: Request, res: Response): Promise<any> => {
-  const product = await updateProduct(req.params.id, req.body);
-  if (!product) {
-    return res.status(404).json({ message: "Product not found" });
-  }
-  res.status(200).json(product);
-};
-
-export const deleteProductHandler = async (req: Request, res: Response): Promise<any> => {
-  const product = await deleteProduct(req.params.id);
-  if (!product) {
-    return res.status(404).json({ message: "Product not found" });
-  }
-  res.status(200).json({ message: "Product deleted successfully" });
 };
