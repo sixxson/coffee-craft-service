@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { getExpensesByCategory } from "../controllers/expense.controller";
+// import { Router } from "express";
+// import { getExpensesByCategory } from "../controllers/expense.controller";
 
-const router = Router();
+// const router = Router();
 
-router.get("/", getExpensesByCategory);
+// router.get("/", getExpensesByCategory);
 
-export default router;
+// export default router;

@@ -2,9 +2,6 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import productRoutes from "./routes/product.routes";
-import dashboardRoutes from "./routes/dashboard.routes";
-import userRoutes from "./routes/user.routes";
-import expenseRoutes from "./routes/expense.routes";
 
 import { errorHandlerMiddleware } from "./middlewares/errorHandler.middleware";
 import helmet from "helmet";
@@ -24,9 +21,9 @@ app.use(morgan("common"));
 
 // Routes
 app.use("/product-service/products", productRoutes);
-app.use("/product-service/dashboard", dashboardRoutes);
-app.use("/product-service/users", userRoutes);
-app.use("/product-service/expenses", expenseRoutes);
+// app.use("/product-service/dashboard", dashboardRoutes);
+// app.use("/product-service/users", userRoutes);
+// app.use("/product-service/expenses", expenseRoutes);
 
 
 // Error Handling Middleware

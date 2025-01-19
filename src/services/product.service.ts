@@ -19,4 +19,3 @@
 
 // export const deleteProduct = async (id: string) => {
 //   return await Product.findByIdAndDelete(id);
-// };

@@ -1,0 +1,16 @@
+[
+  {
+    "productId": 1,
+    "url": "https://res.cloudinary.com/demo/image/upload/v1234567890/products/product1-thumb.jpg",
+    "type": "thumbnail",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-01T00:00:00Z"
+  },
+  {
+    "productId": 1,
+    "url": "https://res.cloudinary.com/demo/image/upload/v1234567890/products/product1-detail1.jpg",
+    "type": "detail",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-01T00:00:00Z"
+  }
+]
