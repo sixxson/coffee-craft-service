@@ -3,6 +3,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import productRoutes from "./routes/product.routes";
 
+import dashboardRoutes from "./routes/dashboardRoutes";
+import productsRoutes from "./routes/productRoutes";
+import userRoutes from "./routes/userRoutes";
+import expenseRoutes from "./routes/expenseRoutes";
+
 import { errorHandlerMiddleware } from "./middlewares/errorHandler.middleware";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -21,9 +26,11 @@ app.use(morgan("common"));
 
 // Routes
 app.use("/product-service/products", productRoutes);
-// app.use("/product-service/dashboard", dashboardRoutes);
-// app.use("/product-service/users", userRoutes);
-// app.use("/product-service/expenses", expenseRoutes);
+
+app.use("/dashboard", dashboardRoutes); // http://localhost:8000/dashboard
+app.use("/products", productsRoutes); // http://localhost:8000/products
+app.use("/users", userRoutes); // http://localhost:8000/users
+app.use("/expenses", expenseRoutes); // http://localhost:8000/expenses
 
 
 // Error Handling Middleware

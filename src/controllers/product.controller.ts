@@ -73,7 +73,7 @@ export const uploadProductImage = async (
     }
 
     const uploadResult = await cloudinary.uploader.upload(file, {
-      folder: "products",
+      folder: "coffee-craft",
       transformation:
         type === "thumbnail"
           ? [{ width: 500, height: 500, crop: "fill" }] // Resize if thumbnail

@@ -31,6 +31,15 @@ async function main() {
     "subCategory.json",
     "product.json",
     "productImage.json",
+    "products.json",
+    "expenseSummary.json",
+    "sales.json",
+    "salesSummary.json",
+    "purchases.json",
+    "purchaseSummary.json",
+    "users.json",
+    "expenses.json",
+    "expenseByCategory.json",
   ];
 
   await deleteAllData(orderedFileNames);
