@@ -32,11 +32,10 @@ app.use(morgan("common"));
 // Routes
 app.use("/product-service/products", productRoutes);
 
-app.use("/dashboard", dashboardRoutes); // http://localhost:8000/dashboard
-app.use("/products", productsRoutes); // http://localhost:8000/products
-app.use("/users", userRoutes); // http://localhost:8000/users
-app.use("/expenses", expenseRoutes); // http://localhost:8000/expenses
-
+app.use("/home", dashboardRoutes);
+app.use("/products", productsRoutes);
+app.use("/users", userRoutes);
+app.use("/expenses", expenseRoutes);
 
 // Error Handling Middleware
 app.use(errorHandlerMiddleware);
