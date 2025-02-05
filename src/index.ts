@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import productRoutes from "./routes/product.routes";
+import categoryRoutes from "./routes/category.routes";
+import subcategoryRoutes from "./routes/subcategory.routes";
+import brandRoutes from "./routes/brand.routes";
 
 import dashboardRoutes from "./routes/dashboardRoutes";
 import productsRoutes from "./routes/productRoutes";
@@ -18,8 +21,11 @@ const app = express();
 
 // Middleware
 const corsOptions = {
-  origin: ['https://coffee-craft-admin-portal.vercel.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    "https://coffee-craft-admin-portal.vercel.app",
+    "http://localhost:3000",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
 app.use(cors());
@@ -31,6 +37,9 @@ app.use(morgan("common"));
 
 // Routes
 app.use("/product-service/products", productRoutes);
+app.use("/product-service/categories", categoryRoutes);
+app.use("/product-service/subcategories", subcategoryRoutes);
+app.use("/product-service/brands", brandRoutes);
 
 app.use("/home", dashboardRoutes);
 app.use("/products", productsRoutes);

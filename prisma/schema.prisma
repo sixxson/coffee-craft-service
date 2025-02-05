@@ -10,14 +10,14 @@ model Category {
   id            Int           @id @default(autoincrement())
   name          String        @unique
   description   String?
-  subCategories SubCategory[]
+  subCategories Subcategory[]
   brands        Brand[]
   products      Product[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
 
-model SubCategory {
+model Subcategory {
   id         Int       @id @default(autoincrement())
   name       String
   categoryId Int
@@ -48,7 +48,7 @@ model Product {
   subCategoryId Int?
   brandId       Int?
   category      Category       @relation(fields: [categoryId], references: [id])
-  subCategory   SubCategory?   @relation(fields: [subCategoryId], references: [id])
+  subCategory   Subcategory?   @relation(fields: [subCategoryId], references: [id])
   brand         Brand?         @relation(fields: [brandId], references: [id])
   images        ProductImage[]
   createdAt     DateTime       @default(now())
