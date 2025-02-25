@@ -5,8 +5,8 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
-  uploadProductImage,
-  deleteProductImage,
+  // uploadProductImage,
+  // deleteProductImage,
 } from "../controllers/product.controller";
 import multer from "multer";
 import { validateProductImage } from "../middlewares/validateProductImage.middleware";
@@ -17,13 +17,13 @@ const router = Router();
 
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
-router.post(
-  "/:productId/image",
-  upload.single("image"),
-  validateProductImage,
-  uploadProductImage
-);
+// router.post(
+//   "/:productId/image",
+//   upload.single("image"),
+//   validateProductImage,
+//   uploadProductImage
+// );
 router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
-router.delete("/:productId/image", deleteProductImage);
+// router.delete("/:productId/image", deleteProductImage);
 export default router;

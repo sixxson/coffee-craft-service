@@ -1,16 +1,5 @@
 [
-  {
-    "id": 1,
-    "name": "Espresso",
-    "categoryId": 1,
-    "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-01T00:00:00Z"
-  },
-  {
-    "id": 2,
-    "name": "Cappuccino",
-    "categoryId": 1,
-    "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-01T00:00:00Z"
-  }
+  { "id": "uuid-5", "name": "Starbucks", "description": "Starbucks is a coffee company" },
+  { "id": "uuid-6", "name": "Nespresso", "description": "Nespresso is a coffee company" },
+  { "id": "uuid-15", "name": "Lavazza", "description": "Lavazza is a coffee company" }
 ]

@@ -23,7 +23,7 @@ export const getBrandById = async (
   try {
     const { id } = req.params;
     const brand = await prisma.brand.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     if (!brand) {
@@ -42,9 +42,9 @@ export const createBrand = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, categoryId } = req.body;
+    const { name, description } = req.body;
     const newBrand = await prisma.brand.create({
-      data: { name, categoryId },
+      data: { name, description },
     });
 
     res.status(201).json(newBrand);
@@ -59,10 +59,10 @@ export const updateBrand = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, categoryId } = req.body;
+    const { name, description } = req.body;
 
     const existingBrand = await prisma.brand.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     if (!existingBrand) {
@@ -71,10 +71,10 @@ export const updateBrand = async (
     }
 
     const updatedBrand = await prisma.brand.update({
-      where: { id: Number(id) },
+      where: { id: id },
       data: {
         name,
-        categoryId,
+        description,
       },
     });
 
@@ -92,7 +92,7 @@ export const deleteBrand = async (
     const { id } = req.params;
 
     await prisma.brand.delete({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     res.status(204).send();

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "uuid-11",
+    "title": "Best Coffee Beans in 2025",
+    "content": "A detailed guide on coffee beans...",
+    "thumbnail": "blog1.jpg",
+    "userId": "uuid-1"
+  },
+  {
+    "id": "uuid-20",
+    "title": "How to Make the Perfect Espresso",
+    "content": "Step by step guide to making espresso...",
+    "thumbnail": "blog2.jpg",
+    "userId": "uuid-2"
+  }
+]

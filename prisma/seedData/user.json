@@ -1,0 +1,23 @@
+[
+  {
+    "id": "uuid-1",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "hashed_password",
+    "role": "CUSTOMER"
+  },
+  {
+    "id": "uuid-2",
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "password": "hashed_password",
+    "role": "ADMIN"
+  },
+  {
+    "id": "uuid-13",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "password": "hashed_password",
+    "role": "CUSTOMER"
+  }
+]

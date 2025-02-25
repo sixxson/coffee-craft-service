@@ -23,7 +23,7 @@ export const getCategoryById = async (
   try {
     const { id } = req.params;
     const category = await prisma.category.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     if (!category) {
@@ -62,7 +62,7 @@ export const updateCategory = async (
     const { name, description } = req.body;
 
     const existingCategory = await prisma.category.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     if (!existingCategory) {
@@ -71,7 +71,7 @@ export const updateCategory = async (
     }
 
     const updatedCategory = await prisma.category.update({
-      where: { id: Number(id) },
+      where: { id: id },
       data: {
         name,
         description,
@@ -92,7 +92,7 @@ export const deleteCategory = async (
     const { id } = req.params;
 
     await prisma.category.delete({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     res.status(204).send();

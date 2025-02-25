@@ -1,0 +1,20 @@
+[
+  {
+    "id": "uuid-8",
+    "userId": "uuid-1",
+    "total": 15.99,
+    "status": "PENDING",
+    "paymentMethod": "COD",
+    "paymentStatus": "PENDING",
+    "voucherId": null
+  },
+  {
+    "id": "uuid-17",
+    "userId": "uuid-13",
+    "total": 25.99,
+    "status": "CONFIRMED",
+    "paymentMethod": "PAYPAL",
+    "paymentStatus": "PAID",
+    "voucherId": "uuid-22"
+  }
+]
