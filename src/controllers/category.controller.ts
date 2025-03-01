@@ -9,13 +9,13 @@ export const getAllCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const products = await prisma.category.findMany();
-    res.status(200).json(products);
+    const categories = await prisma.category.findMany();
+    res.status(200).json(categories);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving products" });
+    res.status(500).json({ message: "Error retrieving category" });
   }
 };
-
+ 
 export const getCategoryById = async (
   req: Request,
   res: Response

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-// import cloudinary from "../config/cloudinary.config";
 
 import { PrismaClient } from "@prisma/client";
+import cloudinary from "cloudinary";
 
 const prisma = new PrismaClient();
 export const getAllProducts = async (
@@ -42,20 +42,27 @@ export const getProductById = async (
   }
 };
 
-export const createProduct = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, description, price, stock, categoryId, brandId, thumbnail } =
-      req.body;
+    const imageUrl = await uploadImage(req.file as Express.Multer.File);
+
+    const { name, description, price, stock, categoryId, brandId } = req.body;
     const newProduct = await prisma.product.create({
-      data: { name, description, price, stock, categoryId, brandId, thumbnail },
+      data: {
+        name,
+        description,
+        price,
+        stock,
+        categoryId,
+        brandId,
+        thumbnail: imageUrl,
+      },
     });
 
     res.status(201).json(newProduct);
   } catch (error) {
-    res.status(500).json({ message: "Error creating product" });
+    res.status(500).json({ message: `Error creating product` });
+    console.log(error);
   }
 };
 
@@ -96,10 +103,7 @@ export const createProduct = async (
 //   }
 // };
 
-export const updateProduct = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description, price, stock, categoryId } = req.body;
@@ -109,8 +113,7 @@ export const updateProduct = async (
     });
 
     if (!existingProduct) {
-      res.status(404).json({ message: "Product not found" });
-      return;
+      return res.status(404).json({ message: "Product not found" });
     }
 
     const updatedProduct = await prisma.product.update({
@@ -152,6 +155,17 @@ export const deleteProduct = async (
   }
 };
 
+const uploadImage = async (file: Express.Multer.File) => {
+  const image = file;
+  const base64Image = Buffer.from(image.buffer).toString("base64");
+  const dataURI = `data:${image.mimetype};base64,${base64Image}`;
+
+  const uploadResponse = await cloudinary.v2.uploader.upload(dataURI);
+  return uploadResponse.url;
+};
+
+
+export default { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct };
 // export const deleteProductImage = async (
 //   req: Request,
 //   res: Response

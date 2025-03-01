@@ -1,5 +1,0 @@
-[
-  { "id": "uuid-3", "name": "Coffee Beans", "parentId": null, "description": "This is a category" },
-  { "id": "uuid-4", "name": "Espresso", "parentId": "uuid-3", "description": "This is a subcategory" },
-  { "id": "uuid-14", "name": "Instant Coffee", "parentId": null, "description": "This is a category" }
-]
