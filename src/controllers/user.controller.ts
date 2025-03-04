@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import Joi from "joi";
-import { User } from "../config/interface";
 import { hashPassword } from "../utils/utils";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['error']
+});
 
 export const getUserById = async (req: Request, res: Response) => {
   const userId = req.params.id;
