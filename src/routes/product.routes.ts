@@ -1,46 +1,27 @@
-import productController, {
-  createProduct,
-  getAllProducts,
-  getProductById,
-  // updateProduct,
-  deleteProduct,
-  // uploadProductImage,
-  // deleteProductImage,
-} from "../controllers/product.controller";
-import multer from "multer";
-import { RequestHandler } from "express";
-// import { jwtCheck, jwtParse } from "../middlewares/auth.middleware";
 import express from "express";
-import { validateProductRequest } from "../middlewares/validateProduct.middleware";
-import authenticate from "../middlewares/auth.middleware";
+import * as productController from "../controllers/product.controller";
+import multer from "multer";
+import { authenticate, isAdmin } from "../middlewares/auth.middleware";
 
 const router = express.Router();
+const upload = multer({ dest: "uploads/" });
 
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5mb
-  },
-});
-
-router.get("/", getAllProducts);
-router.get("/:id", getProductById);
-// router.post(
-//   "/:productId/image",
-//   upload.single("image"),
-//   validateProductImage,
-//   uploadProductImage
-// );
-
+router.get("/", productController.getProducts);
+router.get("/:id", authenticate, productController.getProduct);
 router.post(
   "/",
   authenticate,
-  // validateProductRequest,
+  isAdmin,
+  upload.array("images"),
   productController.createProduct
 );
-// router.put("/:id", jwtCheck, jwtParse, validateProductRequest, productController.updateProduct);
-// router.delete("/:id", jwtCheck, jwtParse, deleteProduct);
-// router.delete("/:productId/image", deleteProductImage);
+router.put(
+  "/:id",
+  authenticate,
+  isAdmin,
+  upload.array("images"),
+  productController.updateProduct
+);
+router.delete("/:id", authenticate, isAdmin, productController.deleteProduct);
 
 export default router;

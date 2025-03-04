@@ -4,18 +4,15 @@ import {
   deleteUser,
   getAllUsers,
   getUserById,
-  login,
-  register,
   updateUser,
 } from "../controllers/user.controller";
+import { authenticate, isAdmin } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getAllUsers);
-router.post("/register", register);
-router.get("/login", login);
-router.get("/:id", getUserById);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+router.get("/", authenticate, getAllUsers);
+router.get("/:id", authenticate, getUserById);
+router.put("/:id", authenticate, updateUser);
+router.delete("/:id", authenticate, isAdmin, deleteUser);
 
 export default router;

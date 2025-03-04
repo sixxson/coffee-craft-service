@@ -99,7 +99,6 @@ model Product {
   name        String
   description String?
   price       Decimal
-  thumbnail   String?
   categoryId  String
   brandId     String
   stock       Int
@@ -114,7 +113,7 @@ model Product {
   brand        Brand?         @relation(fields: [brandId], references: [id])
   orderItems   OrderItem[]
   reviews      Review[]
-  ProductImage ProductImage[]
+  images ProductImage[]
 }
 
 model ProductImage {
@@ -122,6 +121,7 @@ model ProductImage {
   productId String
   url       String
   order     Int?
+  isThumbnail Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 

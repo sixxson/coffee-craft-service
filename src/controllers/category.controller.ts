@@ -1,102 +1,138 @@
-import { Request, Response } from "express";
-import cloudinary from "../config/cloudinary.config";
+import {
+  Request,
+  Response,
+  RequestHandler,
+  Response as ExpressResponse,
+} from "express";
+import {
+  getAllCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  exportCategoriesToExcel,
+  importCategoriesFromExcel,
+  downloadCategoryTemplate as downloadCategoryTemplateService,
+} from "../services/category.service";
 
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-export const getAllCategories = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Get all categories with pagination and filtering
+export const getCategories: RequestHandler = async (req, res): Promise<void> => {
   try {
-    const categories = await prisma.category.findMany();
-    res.status(200).json(categories);
+    const categories = await getAllCategories(req.query);
+    res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving category" });
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
 };
- 
-export const getCategoryById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+
+// Get a single category by ID
+export const getCategory: RequestHandler = async (req, res): Promise<void> => {
   try {
     const { id } = req.params;
-    const category = await prisma.category.findUnique({
-      where: { id: id },
-    });
+    const category = await getCategoryById(id);
 
     if (!category) {
-      res.status(404).json({ message: "Category not found" });
+      res.status(404).json({ error: "Category not found" });
       return;
     }
 
-    res.status(200).json(category);
+    res.json(category);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving product" });
+    res.status(500).json({ error: "Failed to fetch category" });
   }
 };
 
-export const createCategory = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Create a new category
+export const createCategoryHandler: RequestHandler = async (req, res): Promise<void> => {
   try {
-    const { name, description } = req.body;
-    const newCategory = await prisma.category.create({
-      data: { name, description },
-    });
-
-    res.status(201).json(newCategory);
+    const category = await createCategory(req.body);
+    res.status(201).json(category);
   } catch (error) {
-    res.status(500).json({ message: "Error creating product" });
+    res.status(400).json({ error: "Failed to create category" });
   }
 };
 
-export const updateCategory = async (
-  req: Request,
-  res: Response
+// Update an existing category
+export const updateCategoryHandler: RequestHandler = async (
+  req,
+  res
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
-
-    const existingCategory = await prisma.category.findUnique({
-      where: { id: id },
-    });
-
-    if (!existingCategory) {
-      res.status(404).json({ message: "Category not found" });
+    const category = await updateCategory(id, req.body);
+    if (!category) {
+      res.status(404).json({ error: "Category not found" });
       return;
     }
-
-    const updatedCategory = await prisma.category.update({
-      where: { id: id },
-      data: {
-        name,
-        description,
-      },
-    });
-
-    res.status(200).json(updatedCategory);
+    res.json(category);
   } catch (error) {
-    res.status(500).json({ message: "Error updating Category" });
+    res.status(400).json({ error: "Failed to update category" });
   }
 };
 
-export const deleteCategory = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Delete a category
+export const deleteCategoryHandler: RequestHandler = async (req, res): Promise<void> => {
   try {
     const { id } = req.params;
-
-    await prisma.category.delete({
-      where: { id: id },
-    });
-
+    await deleteCategory(id);
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Error deleting category" });
+    res.status(400).json({ error: "Failed to delete category" });
+  }
+};
+
+// Export categories to Excel
+export const exportCategories: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const buffer = await exportCategoriesToExcel();
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", "attachment; filename=categories.xlsx");
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to export categories" });
+  }
+};
+
+// Import categories from Excel
+export const importCategories: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: "No file uploaded" });
+      return;
+    }
+
+    if (!req.file?.buffer) {
+      res.status(400).json({ error: "Invalid file format" });
+      return;
+    }
+
+    const result = await importCategoriesFromExcel(req.file.buffer);
+
+    res.json({
+      message: `Successfully imported ${result.success} categories`,
+      errors: result.errors,
+    });
+  } catch (error) {
+    res.status(400).json({ error: "Failed to import categories" });
+  }
+};
+
+// Download category template
+export const downloadCategoryTemplate: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const buffer = await downloadCategoryTemplateService();
+    
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=category_template.xlsx"
+    );
+    
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to download template" });
   }
 };

@@ -97,7 +97,6 @@
       "name": "Arabica Coffee",
       "description": "This is Arabica Coffee",
       "price": 15.99,
-      "thumbnail": "arabica.jpg",
       "categoryId": "uuid-3",
       "brandId": "uuid-5",
       "stock": 10,
@@ -111,7 +110,6 @@
       "name": "Robusta Coffee",
       "description": "This is Robusta Coffee",
       "price": 12.5,
-      "thumbnail": "robusta.jpg",
       "categoryId": "uuid-3",
       "brandId": "uuid-15",
       "stock": 5,
@@ -126,6 +124,7 @@
       "id": "uuid-20",
       "productId": "uuid-7",
       "url": "arabica.jpg",
+      "isThumbnail": false,
       "order": 1,
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-01-01T00:00:00.000Z"
@@ -135,6 +134,7 @@
       "productId": "uuid-16",
       "url": "robusta.jpg",
       "order": 1,
+      "isThumbnail": false,
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-01-01T00:00:00.000Z"
     }

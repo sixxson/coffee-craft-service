@@ -1,25 +1,23 @@
 import { Request, Response, NextFunction } from "express";
+import { User } from "../config/interface";
+import * as jwt from "jsonwebtoken";
 
 // Extend the Request interface to include the user property
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user: User;
     }
   }
 }
 
-import jwt, { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
-import { User } from "../config/interface";
-
-const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ message: "No valid token provided" });
-    return;
-  }
-
-  const token = authHeader.split(" ")[1].trim();
+// JWT authentication middleware
+export const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.cookies["access_token"];
   if (!token) {
     res.status(401).json({ message: "No token provided" });
     return;
@@ -30,16 +28,20 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
     req.user = decoded as User;
     next();
   } catch (error) {
-    if (error instanceof TokenExpiredError) {
-      res.status(401).json({ message: "Expired token" });
-      return;
+    if ((error as Error).name === "TokenExpiredError") {
+      res.status(401).json({ message: "Token has expired" });
+    } else if ((error as Error).name === "JsonWebTokenError") {
+      res.status(401).json({ message: "Invalid token" });
+    } else {
+      res.status(500).json({ message: "Internal server error" });
     }
-    if (error instanceof JsonWebTokenError) {
-      res.status(401).json({ message: "Token not valid" });
-      return;
-    }
-    res.status(500).json({ message: "Unexpected error" });
   }
 };
 
-export default authenticate;
+export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.role !== "ADMIN") {
+    res.status(403).json({ message: "Access deny" });
+  } else {
+    next();
+  }
+};

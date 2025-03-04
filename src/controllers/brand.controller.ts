@@ -1,102 +1,129 @@
-import { Request, Response } from "express";
-import cloudinary from "../config/cloudinary.config";
+import { Request, Response, RequestHandler } from "express";
+import {
+  getAllBrands,
+  getBrandById,
+  createBrand,
+  updateBrand,
+  deleteBrand,
+  exportBrandsToExcel,
+  importBrandsFromExcel,
+  downloadBrandTemplate as downloadBrandTemplateService,
+} from "../services/brand.service";
 
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-export const getAllBrands = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Get all brands with pagination and filtering
+export async function getBrands(req: Request, res: Response) {
   try {
-    const products = await prisma.brand.findMany();
-    res.status(200).json(products);
+    const brands = await getAllBrands(req.query);
+    res.json(brands);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving products" });
+    res.status(500).json({ error: "Failed to fetch brands" });
   }
-};
+}
 
-export const getBrandById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Get a single brand by ID
+export async function getBrand(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const brand = await prisma.brand.findUnique({
-      where: { id: id },
-    });
+    const brand = await getBrandById(id);
 
     if (!brand) {
-      res.status(404).json({ message: "Brand not found" });
-      return;
+      return res.status(404).json({ error: "Brand not found" });
     }
 
-    res.status(200).json(brand);
+    res.json(brand);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving product" });
+    res.status(500).json({ error: "Failed to fetch brand" });
   }
-};
+}
 
-export const createBrand = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Create a new brand
+export async function createBrandHandler(req: Request, res: Response) {
   try {
-    const { name, description } = req.body;
-    const newBrand = await prisma.brand.create({
-      data: { name, description },
-    });
-
-    res.status(201).json(newBrand);
+    const brand = await createBrand(req.body);
+    res.status(201).json(brand);
   } catch (error) {
-    res.status(500).json({ message: "Error creating product" });
+    res.status(400).json({ error: "Failed to create brand" });
   }
-};
+}
 
-export const updateBrand = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Update an existing brand
+export async function updateBrandHandler(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const brand = await updateBrand(id, req.body);
 
-    const existingBrand = await prisma.brand.findUnique({
-      where: { id: id },
-    });
-
-    if (!existingBrand) {
-      res.status(404).json({ message: "Brand not found" });
-      return;
+    if (!brand) {
+      return res.status(404).json({ error: "Brand not found" });
     }
 
-    const updatedBrand = await prisma.brand.update({
-      where: { id: id },
-      data: {
-        name,
-        description,
-      },
-    });
-
-    res.status(200).json(updatedBrand);
+    res.json(brand);
   } catch (error) {
-    res.status(500).json({ message: "Error updating Brand" });
+    res.status(400).json({ error: "Failed to update brand" });
   }
-};
+}
 
-export const deleteBrand = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Delete a brand
+export async function deleteBrandHandler(req: Request, res: Response) {
   try {
     const { id } = req.params;
-
-    await prisma.brand.delete({
-      where: { id: id },
-    });
-
+    await deleteBrand(id);
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Error deleting brand" });
+    res.status(400).json({ error: "Failed to delete brand" });
+  }
+}
+
+// Export brands to Excel
+export async function exportBrands(req: Request, res: Response) {
+  try {
+    const buffer = await exportBrandsToExcel();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=brands.xlsx");
+
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to export brands" });
+  }
+}
+
+// Import brands from Excel
+export async function importBrands(req: Request, res: Response) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const result = await importBrandsFromExcel(req.file.buffer);
+
+    res.json({
+      message: `Successfully imported ${result.success} brands`,
+      errors: result.errors,
+    });
+  } catch (error) {
+    res.status(400).json({ error: "Failed to import brands" });
+  }
+}
+
+// Download brand template
+export const downloadBrandTemplate: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const buffer = await downloadBrandTemplateService();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=brand_template.xlsx"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to download template" });
   }
 };

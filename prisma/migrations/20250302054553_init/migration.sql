@@ -30,6 +30,8 @@ CREATE TABLE "ShippingAddress" (
     "address" TEXT NOT NULL,
     "receiverName" TEXT NOT NULL,
     "receiverPhone" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ShippingAddress_pkey" PRIMARY KEY ("id")
 );
@@ -63,7 +65,6 @@ CREATE TABLE "Product" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "price" DECIMAL(65,30) NOT NULL,
-    "thumbnail" TEXT,
     "categoryId" TEXT NOT NULL,
     "brandId" TEXT NOT NULL,
     "stock" INTEGER NOT NULL,
@@ -81,6 +82,7 @@ CREATE TABLE "ProductImage" (
     "productId" TEXT NOT NULL,
     "url" TEXT NOT NULL,
     "order" INTEGER,
+    "isThumbnail" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
