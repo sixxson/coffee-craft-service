@@ -219,5 +219,6 @@ model Review {
 
 // -- Reset database --
 // npx prisma migrate reset
+// rm  prisma/migrations
 // npx prisma migrate dev --name init
 // npx prisma generate
