@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { UploadedFile } from "express-fileupload";
 import cloudinary from "cloudinary";
-
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Function to upload an image to Cloudinary
@@ -117,8 +116,8 @@ async function updateProduct(
     where: { productId: id },
   });
   const imagesToKeep = existingImages
-    .filter((img) => !imagesToDelete.includes(img.id))
-    .map((img) => img.id);
+    .filter((img: any) => !imagesToDelete.includes(img.id))
+    .map((img: any) => img.id);
 
   if (newImages.length) {
     const uploadPromises = newImages.map(async (file) => {
@@ -172,7 +171,7 @@ async function deleteProduct(id: string): Promise<void> {
   });
   if (!product) return;
 
-  const deletePromises = product.images.map(async (image) => {
+  const deletePromises = product.images.map(async (image: any) => {
     await deleteImage(image.id);
     return prisma.productImage.delete({ where: { id: image.id } });
   });

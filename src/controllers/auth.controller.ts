@@ -16,6 +16,14 @@ const registerSchema = Joi.object({
   role: Joi.string().valid("CUSTOMER", "ADMIN"),
 });
 
+// Define cookie options
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict" as const,
+  maxAge: 3600000, // 1 hour in milliseconds (matching TOKEN_EXPIRATION)
+};
+
 export const register = async (req: Request, res: Response) => {
   const { error } = registerSchema.validate(req.body);
   if (error) {
@@ -47,7 +55,13 @@ export const register = async (req: Request, res: Response) => {
       },
     });
     const { password, ...userWithoutPass } = user;
-    res.status(201).json(userWithoutPass);
+
+    // Generate token and set cookie
+    const token = generateToken(user.id, user.role);
+    res
+      .cookie("access_token", token, COOKIE_OPTIONS)
+      .status(201)
+      .json(userWithoutPass);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -84,7 +98,13 @@ export const login = async (req: Request, res: Response) => {
 
   // Generate token JWT
   const token = generateToken(user.id, user.role);
-  res.json({ token });
+
+  // Set token in HTTP-only cookie and return user info
+  const { password: _, ...userWithoutPassword } = user;
+  res
+    .cookie("access_token", token, COOKIE_OPTIONS)
+    .status(200)
+    .json({ user: userWithoutPassword });
 };
 
 const generateToken = (userId: string, role: string): string => {
@@ -99,4 +119,13 @@ export const logout = async (req: Request, res: Response) => {
     .clearCookie("access_token")
     .status(200)
     .json({ message: "Logout successful" });
+};
+
+export const me = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  res.json(user);
 };

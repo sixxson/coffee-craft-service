@@ -4,10 +4,12 @@ import dotenv from "dotenv";
 import compression from "compression";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import productRoutes from "./routes/product.routes";
 import categoryRoutes from "./routes/category.routes";
 import brandRoutes from "./routes/brand.routes";
 import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
 
 import { errorHandlerMiddleware } from "./middlewares/errorHandler.middleware";
 
@@ -22,6 +24,7 @@ app.use(
     origin: process.env.CORS_ORIGIN || "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Allow cookies to be sent with requests
   })
 );
 
@@ -36,12 +39,14 @@ app.use(limiter);
 app.use(compression()); // Compress responses
 app.use(express.json({ limit: "10kb" })); // Body size limit
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(cookieParser()); // Parse cookies
 
 // Routes
 app.use("/products", productRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/brands", brandRoutes);
 app.use("/users", userRoutes);
+app.use("/auth", authRoutes);
 
 // Error Handling Middleware
 app.use(errorHandlerMiddleware);
