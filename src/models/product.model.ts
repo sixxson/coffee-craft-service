@@ -1,24 +1,41 @@
-// import mongoose, { Schema, Document } from 'mongoose';
+import { UploadedFile } from "express-fileupload";
 
-// export interface IProduct extends Document {
-//   name: string;
-//   description: string;
-//   price: number;
-//   stock: number;
-//   category: string;
-// }
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  avgRating: number;
+  active: boolean;
+  categoryId?: string;
+  brandId?: string;
+  images: ProductImage[];
+  createdAt: string;
+  updatedAt: string;
+}
 
-// const ProductSchema: Schema = new Schema(
-//   {
-//     name: { type: String, required: true },
-//     description: { type: String, required: true },
-//     price: { type: Number, required: true },
-//     stock: { type: Number, default: 0 },
-//     category: { type: String, required: true },
-//   },
-//   {
-//     timestamps: true,
-//   }
-// );
+export interface ProductImage {
+  id: string;
+  url: string;
+  order?: number;
+  isThumbnail: boolean;
+}
 
-// export default mongoose.model<IProduct>('Product', ProductSchema);
+export interface NewProductImage {
+  file: UploadedFile;
+  isThumbnail: boolean;
+  isNewImage: boolean;
+  url?: string;
+}
+
+export interface NewProduct {
+  name: string;
+  description: string;
+  price: number;
+  categoryId: string;
+  brandId: string;
+  stock: number;
+  active: boolean;
+  images?: NewProductImage[];
+}

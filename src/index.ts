@@ -36,9 +36,9 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Performance Middleware
-app.use(compression()); // Compress responses
+app.use(compression());
 app.use(express.json({ limit: "10kb" })); // Body size limit
-app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+// app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser()); // Parse cookies
 
 // Routes

@@ -1,6 +1,7 @@
 import { UploadedFile } from "express-fileupload";
 import cloudinary from "cloudinary";
 import { PrismaClient } from "@prisma/client";
+import { NewProductImage } from "../models/product.model";
 const prisma = new PrismaClient();
 
 // Function to upload an image to Cloudinary
@@ -34,12 +35,12 @@ async function getAllProducts(options: any): Promise<any[]> {
   const where: any = {
     ...(category_id && { category_id }),
     ...(brand_id && { brand_id }),
-    ...(min_price || max_price) && {
+    ...((min_price || max_price) && {
       price: {
         ...(min_price && { gte: parseFloat(min_price) }),
         ...(max_price && { lte: parseFloat(max_price) }),
       },
-    },
+    }),
   };
 
   return await prisma.product.findMany({
@@ -68,99 +69,84 @@ async function getProductById(id: string): Promise<any | null> {
 }
 
 // Function to create a new product with images
-async function createProduct(
-  data: any,
-  images: UploadedFile[],
-  mainImageIndex: number
-): Promise<any> {
-  if (!images?.length) {
-    throw new Error("At least one image is required");
-  }
-
-  if (mainImageIndex >= images.length || mainImageIndex < 0) {
-    throw new Error("Invalid main image index");
-  }
+async function createProduct(data: any): Promise<any> {
+  // if (!images?.length) {
+  //   throw new Error("At least one image is required");
+  // }
 
   const product = await prisma.product.create({ data });
 
-  const imagePromises = images.map(async (file, index) => {
-    const image = await uploadImage(file);
-    return prisma.productImage.create({
-      data: {
-        productId: product.id,
-        id: image.public_id,
-        url: image.url,
-        order: index,
-        isThumbnail: index === mainImageIndex,
-      },
-    });
-  });
+  // const imagePromises = images.map(async (file, index) => {
+  //   const image = await uploadImage(file.file);
+  //   return prisma.productImage.create({
+  //     data: {
+  //       productId: product.id,
+  //       id: image.public_id,
+  //       url: image.url,
+  //       order: index,
+  //       isThumbnail: file.isThumbnail,
+  //     },
+  //   });
+  // });
 
-  await Promise.all(imagePromises);
+  // await Promise.all(imagePromises);
 
   return await getProductById(product.id);
 }
 
 // Function to update a product with images
-async function updateProduct(
-  id: string,
-  data: any,
-  newImages: UploadedFile[],
-  imagesToDelete: string[],
-  mainImageId: string
-): Promise<any | null> {
+async function updateProduct(id: string, data: any): Promise<any | null> {
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) return null;
 
-  const existingImages = await prisma.productImage.findMany({
-    where: { productId: id },
-  });
-  const imagesToKeep = existingImages
-    .filter((img: any) => !imagesToDelete.includes(img.id))
-    .map((img: any) => img.id);
+  // const existingImages = await prisma.productImage.findMany({
+  //   where: { productId: id },
+  // });
+  // const imagesToKeep = existingImages
+  //   .filter((img: any) => !imagesToDelete.includes(img.id))
+  //   .map((img: any) => img.id);
 
-  if (newImages.length) {
-    const uploadPromises = newImages.map(async (file) => {
-      const image = await uploadImage(file);
-      imagesToKeep.push(image.public_id);
-      return prisma.productImage.create({
-        data: {
-          productId: id,
-          id: image.public_id,
-          url: image.url,
-        },
-      });
-    });
-    await Promise.all(uploadPromises);
-  }
+  // if (newImages.length) {
+  //   const uploadPromises = newImages.map(async (file) => {
+  //     const image = await uploadImage(file);
+  //     imagesToKeep.push(image.public_id);
+  //     return prisma.productImage.create({
+  //       data: {
+  //         productId: id,
+  //         id: image.public_id,
+  //         url: image.url,
+  //       },
+  //     });
+  //   });
+  //   await Promise.all(uploadPromises);
+  // }
 
-  if (!imagesToKeep.length) {
-    throw new Error("At least one image is required");
-  }
+  // if (!imagesToKeep.length) {
+  //   throw new Error("At least one image is required");
+  // }
 
-  if (!imagesToKeep.includes(mainImageId)) {
-    throw new Error("Thumbnail image ID must be in the kept images");
-  }
+  // if (!imagesToKeep.includes(mainImageId)) {
+  //   throw new Error("Thumbnail image ID must be in the kept images");
+  // }
 
-  const deletePromises = imagesToDelete.map(async (imageId) => {
-    await deleteImage(imageId);
-    return prisma.productImage.delete({ where: { id: imageId } });
-  });
+  // const deletePromises = imagesToDelete.map(async (imageId) => {
+  //   await deleteImage(imageId);
+  //   return prisma.productImage.delete({ where: { id: imageId } });
+  // });
 
-  await Promise.all([
-    ...deletePromises,
-    prisma.productImage.updateMany({
-      where: { productId: id },
-      data: { isThumbnail: false },
-    }),
-    prisma.productImage.update({
-      where: { id: mainImageId },
-      data: { isThumbnail: true },
-    }),
-    prisma.product.update({ where: { id }, data }),
-  ]);
-
-  return await getProductById(id);
+  // await Promise.all([
+  //   ...deletePromises,
+  //   prisma.productImage.updateMany({
+  //     where: { productId: id },
+  //     data: { isThumbnail: false },
+  //   }),
+  //   prisma.productImage.update({
+  //     where: { id: mainImageId },
+  //     data: { isThumbnail: true },
+  //   }),
+  //   prisma.product.update({ where: { id }, data }),
+  // ]);
+  return await prisma.product.update({ where: { id }, data });
 }
 
 // Function to delete a product and its images

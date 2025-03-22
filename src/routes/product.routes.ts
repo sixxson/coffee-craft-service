@@ -10,18 +10,21 @@ router.get("/", productController.getProducts);
 router.get("/:id", authenticate, productController.getProduct);
 router.post(
   "/",
-  authenticate,
-  isAdmin,
-  upload.array("images"),
+  // authenticate,
+  // isAdmin,
   productController.createProduct
 );
 router.put(
   "/:id",
-  authenticate,
-  isAdmin,
-  upload.array("images"),
+  // authenticate,
+  // isAdmin,
   productController.updateProduct
 );
-router.delete("/:id", authenticate, isAdmin, productController.deleteProduct);
+router.delete(
+  "/:id",
+  //  authenticate,
+  //  isAdmin,
+  productController.deleteProduct
+);
 
 export default router;

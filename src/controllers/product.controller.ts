@@ -1,26 +1,26 @@
 import { Request, Response } from "express";
-import multer from "multer";
 import * as productService from "../services/product.service";
 import Joi from "joi";
-import { UploadedFile } from "express-fileupload";
+import { NewProductImage } from "../models/product.model";
 
 const createProductSchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().required(),
   price: Joi.number().required(),
-  category_id: Joi.number().required(),
-  brand_id: Joi.number().required(),
-  mainImageIndex: Joi.number().required(),
+  categoryId: Joi.string().required(),
+  brandId: Joi.string().required(),
+  active: Joi.boolean().required(),
+  stock: Joi.number().required(),
 });
 
 const updateProductSchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().required(),
   price: Joi.number().required(),
-  category_id: Joi.number().required(),
-  brand_id: Joi.number().required(),
-  imagesToDelete: Joi.array().items(Joi.string()).required(),
-  mainImageId: Joi.string().required(),
+  categoryId: Joi.string().required(),
+  brandId: Joi.string().required(),
+  active: Joi.boolean().required(),
+  stock: Joi.number().required(),
 }).min(1);
 
 export const getProducts = async (req: Request, res: Response) => {
@@ -55,17 +55,7 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    const product = await productService.createProduct(
-      {
-        name: req.body.name,
-        description: req.body.description,
-        price: req.body.price,
-        category_id: req.body.category_id,
-        brand_id: req.body.brand_id,
-      },
-      Array.isArray(req.files) ? (req.files as unknown as UploadedFile[]) : [],
-      req.body.mainImageIndex
-    );
+    const product = await productService.createProduct(req.body);
     res.status(201).json(product);
   } catch (error) {
     console.error(error);
@@ -81,19 +71,7 @@ export const updateProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    const product = await productService.updateProduct(
-      req.params.id,
-      {
-        name: req.body.name,
-        description: req.body.description,
-        price: req.body.price,
-        category_id: req.body.category_id,
-        brand_id: req.body.brand_id,
-      },
-      Array.isArray(req.files) ? (req.files as unknown as UploadedFile[]) : [],
-      req.body.imagesToDelete,
-      req.body.mainImageId
-    );
+    const product = await productService.updateProduct(req.params.id, req.body);
     if (product) {
       res.json(product);
     } else {
