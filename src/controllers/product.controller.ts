@@ -25,7 +25,11 @@ const updateProductSchema = Joi.object({
 export const getProducts = async (req: Request, res: Response) => {
   try {
     const products = await productService.getAllProducts(req.query);
-    res.json(products);
+    const response = {
+      data: products[0],
+      total: products[1],
+    }
+    res.json(response);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

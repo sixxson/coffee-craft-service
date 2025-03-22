@@ -22,7 +22,7 @@ async function deleteImage(imageId: string): Promise<void> {
 async function getAllProducts(options: any): Promise<any[]> {
   const {
     page = 1,
-    limit = 10,
+    limit = 100,
     sortBy,
     order,
     categoryId,
@@ -42,17 +42,31 @@ async function getAllProducts(options: any): Promise<any[]> {
     }),
   };
 
-  return await prisma.product.findMany({
-    where,
-    skip: (page - 1) * limit,
-    take: limit,
-    include: {
-      images: {
-        select: { id: true, isThumbnail: true, url: true },
+  // return await prisma.product.findMany({
+  //   where,
+  //   skip: (page - 1) * limit,
+  //   take: limit,
+  //   include: {
+  //     images: true,
+  //     category: true,
+  //     brand: true,
+  //   },
+  //   orderBy: sortBy && order ? [{ [sortBy]: order }] : undefined,
+  // });
+  return await Promise.all([
+    prisma.product.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        images: true,
+        category: true,
+        brand: true,
       },
-    },
-    orderBy: sortBy && order ? [{ [sortBy]: order }] : undefined,
-  });
+      orderBy: sortBy && order ? [{ [sortBy]: order }] : undefined,
+    }),
+    prisma.product.count({ where }),
+  ]);
 }
 
 // Function to get a product by ID with images
@@ -60,9 +74,9 @@ async function getProductById(id: string): Promise<any | null> {
   return await prisma.product.findUnique({
     where: { id },
     include: {
-      images: {
-        select: { id: true, isThumbnail: true },
-      },
+      images: true,
+      category: true,
+      brand: true,
     },
   });
 }
@@ -156,15 +170,12 @@ async function deleteProduct(id: string): Promise<void> {
   });
   if (!product) return;
 
-  const deletePromises = product.images.map(async (image: any) => {
-    await deleteImage(image.id);
-    return prisma.productImage.delete({ where: { id: image.id } });
+  product.images.forEach(async (image: any) => {
+    // await deleteImage(image.id);
+    await prisma.productImage.delete({ where: { id: image.id } });
   });
 
-  await Promise.all([
-    ...deletePromises,
-    prisma.product.delete({ where: { id } }),
-  ]);
+  await prisma.product.delete({ where: { id } });
 }
 async function getImages(options: any): Promise<any> {
   const { productId } = options;
