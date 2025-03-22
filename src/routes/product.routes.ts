@@ -4,10 +4,11 @@ import multer from "multer";
 import { authenticate, isAdmin } from "../middlewares/auth.middleware";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
 
+router.get("/image", productController.getProductImages);
+router.post("/image", productController.createProductImage);
 router.get("/", productController.getProducts);
-router.get("/:id", authenticate, productController.getProduct);
+router.get("/:id", productController.getProduct);
 router.post(
   "/",
   // authenticate,
@@ -17,7 +18,7 @@ router.post(
 router.put(
   "/:id",
   // authenticate,
-  // isAdmin,
+  // isAdmin
   productController.updateProduct
 );
 router.delete(

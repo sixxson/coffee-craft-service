@@ -1,7 +1,6 @@
 import { UploadedFile } from "express-fileupload";
 import cloudinary from "cloudinary";
 import { PrismaClient } from "@prisma/client";
-import { NewProductImage } from "../models/product.model";
 const prisma = new PrismaClient();
 
 // Function to upload an image to Cloudinary
@@ -49,7 +48,7 @@ async function getAllProducts(options: any): Promise<any[]> {
     take: limit,
     include: {
       images: {
-        select: { id: true, isThumbnail: true },
+        select: { id: true, isThumbnail: true, url: true },
       },
     },
     orderBy: sort_by && order ? [{ [sort_by]: order }] : undefined,
@@ -167,6 +166,68 @@ async function deleteProduct(id: string): Promise<void> {
     prisma.product.delete({ where: { id } }),
   ]);
 }
+async function getImages(options: any): Promise<any> {
+  const { productId } = options;
+  return await prisma.productImage.findMany({
+    // where: productId && { productId },
+  });
+}
+
+async function createProductImage(query: any): Promise<void> {
+  const { images, productId, isUpload } = query;
+  console.log("🚀 ~ createProductImage ~ query:", images, productId, isUpload);
+
+  if (!productId) {
+    throw new Error("Product ID is required");
+  }
+
+  if (!images?.length) {
+    throw new Error("At least one image is required");
+  }
+  if (isUpload) {
+    const imagePromises = images.map(async (file: any, index: number) => {
+      const image = await uploadImage(file.file);
+      prisma.productImage.create({
+        data: {
+          productId: productId,
+          id: image.public_id,
+          url: image.url,
+          order: file?.order || index,
+          isThumbnail: file.isThumbnail,
+        },
+      });
+    });
+    await Promise.all(imagePromises);
+  } else {
+    images.forEach(async (image: any, index: number) => {
+      await prisma.productImage.create({
+        data: {
+          productId: productId,
+          // id: image.id,
+          url: image.url,
+          order: image?.order || index,
+          isThumbnail: image?.isThumbnail || false,
+        },
+      });
+    });
+  }
+}
+
+async function deleteProductImage(imageId: string): Promise<void> {
+  deleteImage(imageId);
+  await prisma.productImage.delete({ where: { id: imageId } });
+}
+
+async function updateImage(query: any): Promise<void> {
+  const { order, isThumbnail, imageId } = query;
+  await prisma.productImage.update({
+    where: { id: imageId },
+    data: {
+      order: order,
+      isThumbnail: isThumbnail,
+    },
+  });
+}
 
 export {
   getAllProducts,
@@ -174,4 +235,8 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
+  getImages,
+  createProductImage,
+  deleteProductImage,
+  updateImage,
 };

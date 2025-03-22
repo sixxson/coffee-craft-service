@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import * as productService from "../services/product.service";
 import Joi from "joi";
-import { NewProductImage } from "../models/product.model";
 
 const createProductSchema = Joi.object({
   name: Joi.string().required(),
@@ -87,6 +86,31 @@ export const deleteProduct = async (req: Request, res: Response) => {
   try {
     await productService.deleteProduct(req.params.id);
     res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getProductImages = async (req: Request, res: Response) => {
+  try {
+    const images = await productService.getImages({});
+    res.json(images);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const createProductImage = async (req: Request, res: Response) => {
+  try {
+    const { images, productId, isUpload } = req.body;
+    await productService.createProductImage({
+      images,
+      productId,
+      isUpload: isUpload || false,
+    });
+    res.json({ message: "Images uploaded successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

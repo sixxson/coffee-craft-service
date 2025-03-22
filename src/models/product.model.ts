@@ -22,13 +22,6 @@ export interface ProductImage {
   isThumbnail: boolean;
 }
 
-export interface NewProductImage {
-  file: UploadedFile;
-  isThumbnail: boolean;
-  isNewImage: boolean;
-  url?: string;
-}
-
 export interface NewProduct {
   name: string;
   description: string;
@@ -37,5 +30,4 @@ export interface NewProduct {
   brandId: string;
   stock: number;
   active: boolean;
-  images?: NewProductImage[];
 }
