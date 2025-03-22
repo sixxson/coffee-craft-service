@@ -23,21 +23,21 @@ async function getAllProducts(options: any): Promise<any[]> {
   const {
     page = 1,
     limit = 10,
-    sort_by,
+    sortBy,
     order,
     categoryId,
     brandId,
-    min_price,
-    max_price,
+    minPrice,
+    maxPrice,
   } = options;
 
   const where: any = {
     ...(categoryId && { categoryId }),
     ...(brandId && { brandId }),
-    ...((min_price || max_price) && {
+    ...((minPrice || maxPrice) && {
       price: {
-        ...(min_price && { gte: parseFloat(min_price) }),
-        ...(max_price && { lte: parseFloat(max_price) }),
+        ...(minPrice && { gte: parseFloat(minPrice) }),
+        ...(maxPrice && { lte: parseFloat(maxPrice) }),
       },
     }),
   };
@@ -51,7 +51,7 @@ async function getAllProducts(options: any): Promise<any[]> {
         select: { id: true, isThumbnail: true, url: true },
       },
     },
-    orderBy: sort_by && order ? [{ [sort_by]: order }] : undefined,
+    orderBy: sortBy && order ? [{ [sortBy]: order }] : undefined,
   });
 }
 
