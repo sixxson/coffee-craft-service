@@ -25,15 +25,15 @@ async function getAllProducts(options: any): Promise<any[]> {
     limit = 10,
     sort_by,
     order,
-    category_id,
-    brand_id,
+    categoryId,
+    brandId,
     min_price,
     max_price,
   } = options;
 
   const where: any = {
-    ...(category_id && { category_id }),
-    ...(brand_id && { brand_id }),
+    ...(categoryId && { categoryId }),
+    ...(brandId && { brandId }),
     ...((min_price || max_price) && {
       price: {
         ...(min_price && { gte: parseFloat(min_price) }),
