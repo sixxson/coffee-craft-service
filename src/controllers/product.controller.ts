@@ -28,7 +28,7 @@ export const getProducts = async (req: Request, res: Response) => {
     const response = {
       data: products[0],
       total: products[1],
-    }
+    };
     res.json(response);
   } catch (error) {
     console.error(error);
@@ -92,7 +92,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error });
   }
 };
 

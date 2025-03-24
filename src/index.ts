@@ -11,8 +11,6 @@ import brandRoutes from "./routes/brand.routes";
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 
-import { errorHandlerMiddleware } from "./middlewares/errorHandler.middleware";
-
 dotenv.config();
 
 const app = express();
@@ -47,9 +45,6 @@ app.use("/categories", categoryRoutes);
 app.use("/brands", brandRoutes);
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
-
-// Error Handling Middleware
-app.use(errorHandlerMiddleware);
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
