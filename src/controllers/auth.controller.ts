@@ -36,7 +36,7 @@ export const register = async (req: Request, res: Response) => {
     return;
   }
 
-  const { name, email, password, role = "CUSTOMER" } = req.body;
+  const { name, email, password, role = "CUSTOMER", phone, address, gender, dob } = req.body;
 
   // Check if email already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -55,7 +55,11 @@ export const register = async (req: Request, res: Response) => {
         name,
         email,
         password: hashedPassword,
-        role: role,
+        role,
+        phone,
+        address,
+        gender,
+        dob
       },
     });
     const { password, ...userWithoutPass } = user;
