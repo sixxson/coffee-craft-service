@@ -10,16 +10,20 @@ const prisma = new PrismaClient();
 const TOKEN_EXPIRATION = "1h";
 
 const registerSchema = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
   role: Joi.string().valid("CUSTOMER", "ADMIN"),
+  phone: Joi.string(),
+  address: Joi.string(),
+  gender: Joi.string(),
+  dob: Joi.string(),
 });
 
 // Define cookie options
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  // secure: process.env.NODE_ENV === "production",
   sameSite: "strict" as const,
   maxAge: 3600000, // 1 hour in milliseconds (matching TOKEN_EXPIRATION)
 };
@@ -127,5 +131,11 @@ export const me = async (req: Request, res: Response) => {
     return;
   }
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-  res.json(user);
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+
+  const { password, ...userWithoutPass } = user;
+  res.json(userWithoutPass);
 };

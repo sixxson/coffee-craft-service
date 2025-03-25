@@ -33,13 +33,18 @@ enum VoucherType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
+  id        String    @id @default(uuid())
+  name      String?
+  email     String    @unique
   password  String
-  role      UserRole @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  phone     String?
+  address   String?
+  imgUrl    String?
+  gender    String?
+  dob       DateTime?
+  role      UserRole  @default(CUSTOMER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 
   orders            Order[]
   blogs             Blog[]
@@ -107,10 +112,10 @@ model Product {
 }
 
 model ProductImage {
-  id           String  @id @default(uuid())
-  productId    String
-  url          String
-  order        Int?
+  id          String  @id @default(uuid())
+  productId   String
+  url         String
+  order       Int?
   isThumbnail Boolean @default(false)
 
   product Product @relation(fields: [productId], references: [id])

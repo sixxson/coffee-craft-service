@@ -2,6 +2,7 @@ import express from "express";
 import * as productController from "../controllers/product.controller";
 import multer from "multer";
 import { authenticate, isAdmin } from "../middlewares/auth.middleware";
+import errorHandler from "../middlewares/errorHandler.middleware";
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ router.put(
 );
 router.delete(
   "/:id",
+  errorHandler,
   //  authenticate,
   //  isAdmin,
   productController.deleteProduct

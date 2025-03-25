@@ -10,7 +10,7 @@ import { authenticate, isAdmin } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getAllUsers);
+router.get("/", authenticate, getAllUsers);
 router.get("/:id", authenticate, getUserById);
 router.put("/:id", authenticate, updateUser);
 router.delete("/:id", authenticate, isAdmin, deleteUser);
