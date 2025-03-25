@@ -17,7 +17,7 @@ const registerSchema = Joi.object({
   phone: Joi.string(),
   address: Joi.string(),
   gender: Joi.string(),
-  dob: Joi.string(),
+  // dob: Joi.string(),
 });
 
 // Define cookie options
@@ -44,7 +44,7 @@ export const register = async (req: Request, res: Response) => {
     phone = "",
     address = "",
     gender = "",
-    dob = "",
+    // dob = "",
   } = req.body;
 
   // Check if email already exists
@@ -68,7 +68,7 @@ export const register = async (req: Request, res: Response) => {
         phone,
         address,
         gender,
-        dob,
+        // dob,
       },
     });
     const { password, ...userWithoutPass } = user;
