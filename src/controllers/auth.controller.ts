@@ -44,7 +44,6 @@ export const register = async (req: Request, res: Response) => {
     phone = "",
     address = "",
     gender = "",
-    // dob = "",
   } = req.body;
 
   // Check if email already exists
@@ -68,7 +67,6 @@ export const register = async (req: Request, res: Response) => {
         phone,
         address,
         gender,
-        // dob,
       },
     });
     const { password, ...userWithoutPass } = user;

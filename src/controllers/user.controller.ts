@@ -4,7 +4,7 @@ import Joi from "joi";
 import { hashPassword } from "../utils/utils";
 
 const prisma = new PrismaClient({
-  log: ['error']
+  log: ["error"],
 });
 
 export const getUserById = async (req: Request, res: Response) => {
@@ -38,7 +38,13 @@ const updateUserSchema = Joi.object({
   name: Joi.string(),
   email: Joi.string().email(),
   password: Joi.string().min(6),
-}).min(1);
+  role: Joi.string().valid("CUSTOMER", "ADMIN"),
+  phone: Joi.string(),
+  address: Joi.string(),
+  gender: Joi.string(),
+  dob: Joi.date(),
+  imgUrl: Joi.string(),
+});
 
 export const updateUser = async (req: Request, res: Response) => {
   const userId = req.params.id;
@@ -47,11 +53,11 @@ export const updateUser = async (req: Request, res: Response) => {
     return;
   }
 
-  const { error } = updateUserSchema.validate(req.body);
-  if (error) {
-    res.status(400).json({ message: error.details[0].message });
-    return;
-  }
+  // const { error } = updateUserSchema.validate(req.body);
+  // if (error) {
+  //   res.status(400).json({ message: error.details[0].message });
+  //   return;
+  // }
 
   // Get current user data
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -60,7 +66,7 @@ export const updateUser = async (req: Request, res: Response) => {
     return;
   }
 
-  if (user.id !== req.user.id && req.user.role !== "ADMIN") {
+  if (user.id !== req.user.id) {
     res.status(403).json({ message: "Access forbidden" });
     return;
   }
@@ -70,24 +76,16 @@ export const updateUser = async (req: Request, res: Response) => {
   if (req.body.name) {
     data.name = req.body.name;
   }
-  if (req.body.email) {
-    // Check if email is different and already exists
-    if (req.body.email !== user.email) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email: req.body.email },
-      });
-      if (existingUser) {
-        res.status(409).json({ message: "Email already exists" });
-        return;
-      }
-    }
-    data.email = req.body.email;
-  }
   if (req.body.password) {
     const hashedPassword = await hashPassword(req.body.password);
     data.password = hashedPassword;
   }
-
+  const { phone, address, gender, dob, imgUrl } = req.body;
+  data.phone = phone || user.phone || "";
+  data.address = address || user.address || "";
+  data.gender = gender || user.gender || "";
+  data.dob = dob || user.dob || null;
+  data.imgUrl = imgUrl || user.imgUrl || "";
   // Update user
   try {
     const updatedUser = await prisma.user.update({
