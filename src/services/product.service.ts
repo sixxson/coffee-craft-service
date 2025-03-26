@@ -5,17 +5,17 @@ const prisma = new PrismaClient();
 
 // Function to upload an image to Cloudinary
 async function uploadImage(file: UploadedFile) {
-    return await cloudinary.v2.uploader.upload(file.tempFilePath, {
-        eager: [
-            { width: 200, height: 200, crop: "fill", gravity: "center" },
-            { width: 800, height: 600, crop: "fill", gravity: "center" },
-        ],
-    });
+  return await cloudinary.v2.uploader.upload(file.tempFilePath, {
+    eager: [
+      { width: 200, height: 200, crop: "fill", gravity: "center" },
+      { width: 800, height: 600, crop: "fill", gravity: "center" },
+    ],
+  });
 }
 
 // Function to delete an image from Cloudinary
 async function deleteImage(imageId: string): Promise<void> {
-    await cloudinary.v2.uploader.destroy(imageId);
+  await cloudinary.v2.uploader.destroy(imageId);
 }
 
 // Function to get all products with images
@@ -84,39 +84,41 @@ async function createProduct(data: any): Promise<any> {
 
 // Function to update a product
 async function updateProduct(id: string, data: any): Promise<any | null> {
-    const updatedProduct = await prisma.product.update({ where: { id }, data});
-    if(!updatedProduct) {
-        throw new Error("Product not found");
-    }
-    return updatedProduct;
+  const updatedProduct = await prisma.product.update({ where: { id }, data });
+  if (!updatedProduct) {
+    throw new Error("Product not found");
+  }
+  return updatedProduct;
 }
 
 // Function to delete a product and its images
 async function deleteProduct(productId: string): Promise<void> {
-    const product = await prisma.product.findUnique({
-        where: { id: productId },
-        include: { images: true },
-    });
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { images: true },
+  });
 
-    if (!product) {
-      return;
-    }
+  if (!product) {
+    return;
+  }
 
-    const imageDeletionPromises = product.images.map(({ id: imageId }) =>
-        prisma.productImage.delete({ where: { id: imageId } })
-    );
+  const imageDeletionPromises = product.images.map(({ id: imageId }) =>
+    prisma.productImage.delete({ where: { id: imageId } })
+  );
 
-    await Promise.all(imageDeletionPromises);
-    const deletedProduct = await prisma.product.delete({ where: { id: productId } });
-    if (!deletedProduct){
-        throw new Error("Product not found");
-    }
+  await Promise.all(imageDeletionPromises);
+  const deletedProduct = await prisma.product.delete({
+    where: { id: productId },
+  });
+  if (!deletedProduct) {
+    throw new Error("Product not found");
+  }
 }
 async function getImages(options: any): Promise<any> {
-    const { productId } = options;
-    return await prisma.productImage.findMany({
-        where: productId ? { productId } : {},
-    });
+  const { productId } = options;
+  return await prisma.productImage.findMany({
+    where: productId ? { productId } : {},
+  });
 }
 
 async function createProductImage(query: any): Promise<void> {
@@ -161,35 +163,47 @@ async function createProductImage(query: any): Promise<void> {
 }
 
 async function deleteProductImage(imageId: string): Promise<void> {
-    await deleteImage(imageId);
-    const deletedImage = await prisma.productImage.delete({ where: { id: imageId } });
-     if (!deletedImage) {
-        throw new Error("Product image not found");
-    }
+  await deleteImage(imageId);
+  const deletedImage = await prisma.productImage.delete({
+    where: { id: imageId },
+  });
+  if (!deletedImage) {
+    throw new Error("Product image not found");
+  }
 }
 
-async function updateImage(query: any): Promise<void> {
-    const { order, isThumbnail, imageId } = query;
-    const updatedImage = await prisma.productImage.update({
-        where: { id: imageId },
-        data: {
-            order: order,
-            isThumbnail: isThumbnail,
-        },
+async function updateProductImage(imageId: string, data: any): Promise<void> {
+  const { order, isThumbnail, url, productId } = data;
+
+  if (!imageId) throw new Error("Image ID is required");
+
+  if (isThumbnail) {
+    await prisma.productImage.updateMany({
+      where: { productId: productId, id: { not: imageId } },
+      data: {
+        isThumbnail: false,
+      },
     });
-    if(!updatedImage){
-        throw new Error("Product image not found")
-    }
+  }
+
+  await prisma.productImage.update({
+    where: { id: imageId },
+    data: {
+      order: order,
+      isThumbnail: isThumbnail,
+      url: url,
+    },
+  });
 }
 
 export {
-    getAllProducts,
-    getProductById,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-    getImages,
-    createProductImage,
-    deleteProductImage,
-    updateImage,
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getImages,
+  createProductImage,
+  deleteProductImage,
+  updateProductImage,
 };

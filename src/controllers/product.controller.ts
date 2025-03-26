@@ -98,7 +98,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
 export const getProductImages = async (req: Request, res: Response) => {
   try {
-    const images = await productService.getImages({});
+    const images = await productService.getImages(req.query);
     res.json(images);
   } catch (error) {
     console.error(error);
@@ -115,6 +115,26 @@ export const createProductImage = async (req: Request, res: Response) => {
       isUpload: isUpload || false,
     });
     res.json({ message: "Images uploaded successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteProductImage = async (req: Request, res: Response) => {
+  try {
+    await productService.deleteProductImage(req.params.id);
+    res.json({ message: "Image deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateProductImage = async (req: Request, res: Response) => {
+  try {
+    await productService.updateProductImage(req.params.id, req.body);
+    res.json({ message: "Image updated successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

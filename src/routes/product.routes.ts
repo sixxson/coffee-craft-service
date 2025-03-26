@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get("/image", productController.getProductImages);
 router.post("/image", productController.createProductImage);
+router.put("/image/:id", productController.updateProductImage);
 router.get("/", productController.getProducts);
 router.get("/:id", productController.getProduct);
 router.post(
