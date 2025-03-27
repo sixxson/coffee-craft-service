@@ -15,42 +15,19 @@ import { PaymentMethod, OrderStatus } from '@prisma/client'; // Import enums
 // @route   POST /api/orders
 // @access  Private (Customer)
 export const handleCreateOrder = asyncHandler(async (req: Request, res: Response) => {
-    const { shippingAddressId, paymentMethod, items, voucherCode, note } = req.body;
-    const userId = req.user.id; // Get user ID from authenticated user
-    const userRole = req.user.role; // Get role
-
-    if (!userId) { // This check might be redundant if middleware guarantees user
-        res.status(401);
-        throw new Error('Not authorized, user ID not found');
-    }
-
-    if (!shippingAddressId || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
-        res.status(400);
-        throw new Error('Missing required order fields: shippingAddressId, paymentMethod, and items array');
-    }
-
-    // Basic validation for payment method enum
-    if (!Object.values(PaymentMethod).includes(paymentMethod)) {
-        res.status(400);
-        throw new Error(`Invalid payment method: ${paymentMethod}`);
-    }
-
-    // Basic validation for items structure
-    for (const item of items) {
-        if (!item.productId || !item.quantity || typeof item.quantity !== 'number' || item.quantity <= 0) {
-            res.status(400);
-            throw new Error('Invalid items structure: Each item must have productId and a positive quantity.');
-        }
-    }
+    // Validation is handled by the validateRequestBody middleware
+    // req.body contains validated data: { shippingAddressId, paymentMethod, items, voucherCode?, note? }
+    const validatedBody = req.body;
+    const userId = req.user.id; // Get user ID from authenticated user (guaranteed by middleware)
 
     try {
         const orderInput = {
             userId,
-            shippingAddressId,
-            paymentMethod,
-            items,
-            voucherCode,
-            note,
+            shippingAddressId: validatedBody.shippingAddressId,
+            paymentMethod: validatedBody.paymentMethod,
+            items: validatedBody.orderItems,
+            voucherCode: validatedBody.voucherCode, // Use validated value
+            note: validatedBody.note,             // Use validated value
         };
         const createdOrder = await createOrder(orderInput);
         res.status(201).json(createdOrder);
@@ -65,12 +42,7 @@ export const handleCreateOrder = asyncHandler(async (req: Request, res: Response
 // @route   GET /api/orders/myorders
 // @access  Private (Customer)
 export const handleGetMyOrders = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user.id; // Assuming user is guaranteed by middleware
-
-    if (!userId) { // Redundant check?
-        res.status(401);
-        throw new Error('Not authorized, user ID not found'); // Should not happen if middleware works
-    }
+    const userId = req.user.id; // Guaranteed by authenticate middleware
 
     const orders = await getOrdersByUserId(userId);
     res.status(200).json(orders);
@@ -81,13 +53,8 @@ export const handleGetMyOrders = asyncHandler(async (req: Request, res: Response
 // @access  Private (Customer owns order, or Admin/Staff)
 export const handleGetOrderById = asyncHandler(async (req: Request, res: Response) => {
     const orderId = req.params.id;
-    const userId = req.user.id; // Assuming user is guaranteed by middleware
-    const userRole = req.user.role;
-
-    if (!userId) { // Redundant check?
-        res.status(401);
-        throw new Error('Not authorized, user ID not found'); // Should not happen if middleware works
-    }
+    const userId = req.user.id; // Guaranteed by authenticate middleware
+    const userRole = req.user.role; // Guaranteed by authenticate middleware
 
     try {
         // Allow Admin/Staff to view any order, otherwise check ownership
@@ -105,12 +72,9 @@ export const handleGetOrderById = asyncHandler(async (req: Request, res: Respons
 // @access  Private (Staff/Admin)
 export const handleUpdateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
     const orderId = req.params.id;
-    const { status } = req.body; // Expect status in the request body
-
-    if (!status || !Object.values(OrderStatus).includes(status)) {
-        res.status(400);
-        throw new Error(`Invalid or missing status: ${status}`);
-    }
+    // Validation is handled by the validateRequestBody middleware
+    // req.body contains validated data: { status }
+    const { status } = req.body;
 
     try {
         const updatedOrder = await updateOrderStatus(orderId, status);
