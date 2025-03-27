@@ -45,3 +45,11 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     next();
   }
 };
+
+export const isStaffOrAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.role !== "ADMIN" && req.user?.role !== "STAFF") {
+    res.status(403).json({ message: "Access deny: Requires Staff or Admin role" });
+  } else {
+    next();
+  }
+};

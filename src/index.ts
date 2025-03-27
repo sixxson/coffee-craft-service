@@ -10,6 +10,7 @@ import categoryRoutes from "./routes/category.routes";
 import brandRoutes from "./routes/brand.routes";
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
+import orderRoutes from "./routes/order.routes";
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use("/categories", categoryRoutes);
 app.use("/brands", brandRoutes);
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
+app.use("/orders", orderRoutes);
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
