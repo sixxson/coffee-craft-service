@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import Joi from "joi";
 import { hashPassword } from "../utils/utils";
 
 const prisma = new PrismaClient({
@@ -34,17 +33,6 @@ export const getUserById = async (req: Request, res: Response) => {
   res.json(user);
 };
 
-const updateUserSchema = Joi.object({
-  name: Joi.string(),
-  email: Joi.string().email(),
-  password: Joi.string().min(6),
-  role: Joi.string().valid("CUSTOMER", "ADMIN"),
-  phone: Joi.string(),
-  address: Joi.string(),
-  gender: Joi.string(),
-  dob: Joi.date(),
-  imgUrl: Joi.string(),
-});
 
 export const updateUser = async (req: Request, res: Response) => {
   const userId = req.params.id;
@@ -53,13 +41,6 @@ export const updateUser = async (req: Request, res: Response) => {
     return;
   }
 
-  // const { error } = updateUserSchema.validate(req.body);
-  // if (error) {
-  //   res.status(400).json({ message: error.details[0].message });
-  //   return;
-  // }
-
-  // Get current user data
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     res.status(404).json({ message: "User not found" });
@@ -71,26 +52,24 @@ export const updateUser = async (req: Request, res: Response) => {
     return;
   }
 
-  // Prepare update data
-  const data: any = {};
-  if (req.body.name) {
-    data.name = req.body.name;
+  // Prepare update data from validated req.body
+  const data: any = { ...req.body }; // Spread validated fields
+
+  // Handle password hashing separately if present in validated data
+  if (data.password) {
+    data.password = await hashPassword(data.password);
   }
-  if (req.body.password) {
-    const hashedPassword = await hashPassword(req.body.password);
-    data.password = hashedPassword;
-  }
-  const { phone, address, gender, dob, imgUrl } = req.body;
-  data.phone = phone || user.phone || "";
-  data.address = address || user.address || "";
-  data.gender = gender || user.gender || "";
-  data.dob = dob || user.dob || null;
-  data.imgUrl = imgUrl || user.imgUrl || "";
+
+  // Remove fields that shouldn't be directly updated this way (e.g., email, role unless admin)
+  // The updateUserProfileSchema already prevents role/email, but good practice if schemas change
+  delete data.email;
+  delete data.role;
+
   // Update user
   try {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data,
+      data, // Use the prepared data object
     });
     const { password, ...userWithoutPass } = updatedUser;
     res.json(userWithoutPass);

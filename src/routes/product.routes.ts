@@ -3,6 +3,11 @@ import * as productController from "../controllers/product.controller";
 import multer from "multer";
 import { authenticate, isAdmin } from "../middlewares/auth.middleware";
 import errorHandler from "../middlewares/errorHandler.middleware";
+import { validateRequestBody } from "../middlewares/validation.middleware";
+import {
+  createProductSchema,
+  updateProductSchema,
+} from "../validations/product.validation";
 
 const router = express.Router();
 
@@ -13,14 +18,16 @@ router.get("/", productController.getProducts);
 router.get("/:id", productController.getProduct);
 router.post(
   "/",
-  // authenticate,
-  // isAdmin,
+  // authenticate, // Consider uncommenting
+  // isAdmin, // Consider uncommenting
+  validateRequestBody(createProductSchema), // Validate request body
   productController.createProduct
 );
 router.put(
   "/:id",
-  // authenticate,
-  // isAdmin
+  // authenticate, // Consider uncommenting
+  // isAdmin, // Consider uncommenting
+  validateRequestBody(updateProductSchema), // Validate request body
   productController.updateProduct
 );
 router.delete(

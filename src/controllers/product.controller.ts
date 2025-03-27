@@ -1,26 +1,5 @@
 import { Request, Response } from "express";
 import * as productService from "../services/product.service";
-import Joi from "joi";
-
-const createProductSchema = Joi.object({
-  name: Joi.string().required(),
-  description: Joi.string().required(),
-  price: Joi.number().required(),
-  categoryId: Joi.string().required(),
-  brandId: Joi.string().required(),
-  active: Joi.boolean().required(),
-  stock: Joi.number().required(),
-});
-
-const updateProductSchema = Joi.object({
-  name: Joi.string().required(),
-  description: Joi.string().required(),
-  price: Joi.number().required(),
-  categoryId: Joi.string().required(),
-  brandId: Joi.string().required(),
-  active: Joi.boolean().required(),
-  stock: Joi.number().required(),
-}).min(1);
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -51,12 +30,6 @@ export const getProduct = async (req: Request, res: Response) => {
 };
 
 export const createProduct = async (req: Request, res: Response) => {
-  const { error } = createProductSchema.validate(req.body);
-  if (error) {
-    res.status(400).json({ message: error.details[0].message });
-    return;
-  }
-
   try {
     const product = await productService.createProduct(req.body);
     res.status(201).json(product);
@@ -67,12 +40,6 @@ export const createProduct = async (req: Request, res: Response) => {
 };
 
 export const updateProduct = async (req: Request, res: Response) => {
-  const { error } = updateProductSchema.validate(req.body);
-  if (error) {
-    res.status(400).json({ message: error.details[0].message });
-    return;
-  }
-
   try {
     const product = await productService.updateProduct(req.params.id, req.body);
     if (product) {

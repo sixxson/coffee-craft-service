@@ -16,11 +16,6 @@ import { PaymentMethod, OrderStatus } from '@prisma/client'; // Import enums
 // @access  Private (Customer)
 export const handleCreateOrder = asyncHandler(async (req: Request, res: Response) => {
     const { shippingAddressId, paymentMethod, items, voucherCode, note } = req.body;
-    // The user object should be attached by the authenticate middleware
-    // Note: auth.middleware.ts types req.user as User, not potentially undefined.
-    // If the middleware guarantees user exists on protected routes, we might not need ?.
-    // However, the middleware code itself has a potential issue casting jwt payload to User.
-    // For now, let's assume the middleware *should* guarantee req.user exists and has id/role.
     const userId = req.user.id; // Get user ID from authenticated user
     const userRole = req.user.role; // Get role
 
