@@ -33,11 +33,15 @@ export const getUserById = async (req: Request, res: Response) => {
   res.json(user);
 };
 
-
 export const updateUser = async (req: Request, res: Response) => {
   const userId = req.params.id;
   if (!userId) {
     res.status(400).json({ message: "Invalid user ID" });
+    return;
+  }
+
+  if (req.user?.role === "CUSTOMER" && userId !== req.user.id) {
+    res.status(403).json({ message: "Access forbidden" });
     return;
   }
 

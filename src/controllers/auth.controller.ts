@@ -7,7 +7,7 @@ import { hashPassword } from "../utils/utils";
 
 const prisma = new PrismaClient();
 
-const TOKEN_EXPIRATION = "1h";
+const TOKEN_EXPIRATION = "24h";
 
 const registerSchema = Joi.object({
   name: Joi.string(),
