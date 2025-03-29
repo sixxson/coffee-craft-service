@@ -41,18 +41,13 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 
   if (req.user?.role === "CUSTOMER" && userId !== req.user.id) {
-    res.status(403).json({ message: "Access forbidden" });
+    res.status(403).json({ message: "Access forbidden, cannot update another user" });
     return;
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     res.status(404).json({ message: "User not found" });
-    return;
-  }
-
-  if (user.id !== req.user.id) {
-    res.status(403).json({ message: "Access forbidden" });
     return;
   }
 
