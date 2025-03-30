@@ -75,12 +75,7 @@ export const getProductImages = async (req: Request, res: Response) => {
 
 export const createProductImage = async (req: Request, res: Response) => {
   try {
-    const { images, productId, isUpload } = req.body;
-    await productService.createProductImage({
-      images,
-      productId,
-      isUpload: isUpload || false,
-    });
+    await productService.createProductImage(req.body);
     res.json({ message: "Images uploaded successfully" });
   } catch (error) {
     console.error(error);
