@@ -37,7 +37,7 @@ app.use(
 
 // Performance Middleware
 app.use(compression());
-app.use(express.json({ limit: "10kb" })); // Body size limit
+app.use(express.json()); // Body size limit
 // app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser()); // Parse cookies
 
