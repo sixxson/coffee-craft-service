@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../utils/utils";
+import * as bCrypt from "bcrypt";
 
 const prisma = new PrismaClient({
   log: ["error"],
@@ -41,7 +42,9 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 
   if (req.user?.role === "CUSTOMER" && userId !== req.user.id) {
-    res.status(403).json({ message: "Access forbidden, cannot update another user" });
+    res
+      .status(403)
+      .json({ message: "Access forbidden, cannot update another user" });
     return;
   }
 
@@ -56,14 +59,27 @@ export const updateUser = async (req: Request, res: Response) => {
 
   // Handle password hashing separately if present in validated data
   if (data.password) {
+    if (req.user?.role === "CUSTOMER") {
+      if (!data.oldPassword) {
+        res.status(400).json({ message: "Old password is required" });
+        return;
+      }
+      const passwordMatch = await bCrypt.compare(
+        data.oldPassword,
+        user.password
+      );
+      if (!passwordMatch) {
+        res.status(401).json({ message: "Old password is incorrect" });
+        return;
+      }
+    }
     data.password = await hashPassword(data.password);
   }
 
   // Remove fields that shouldn't be directly updated this way (e.g., email, role unless admin)
   // The updateUserProfileSchema already prevents role/email, but good practice if schemas change
   delete data.email;
-  delete data.role;
-
+  delete data.oldPassword;
   // Update user
   try {
     const updatedUser = await prisma.user.update({
