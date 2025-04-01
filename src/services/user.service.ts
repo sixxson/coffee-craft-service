@@ -44,14 +44,12 @@ export const getUserByIdService = async (
 ): Promise<SafeUser | null> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    include:{
+      orders: true,
+      shippingAddresses: true,
+      reviews: true,
+    }
+    
   });
   return user;
 };

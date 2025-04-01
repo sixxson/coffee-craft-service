@@ -62,10 +62,13 @@ This document outlines the available API endpoints for the Coffee Craft Service.
 
 *Note: All order routes require authentication via the `authenticate` middleware.*
 
--   **`POST /orders`**: Create a new order.
+-   **`GET /orders`**: Get a list of all orders. (Staff/Admin only).
+    -   Middleware: `isStaffOrAdmin`
+    -   Controller: `handleGetAllOrders`
+-   **`POST /orders`**: Create a new order. (Customer)
     -   Middleware: `validateRequestBody(createOrderSchema)`
     -   Controller: `handleCreateOrder`
--   **`GET /orders/myorders`**: Get orders placed by the currently authenticated user.
+-   **`GET /orders/myorders`**: Get orders placed by the currently authenticated user. (Customer)
     -   Controller: `handleGetMyOrders`
 -   **`GET /orders/:id`**: Get a specific order by its ID. (User must own the order or be Staff/Admin).
     -   Controller: `handleGetOrderById`

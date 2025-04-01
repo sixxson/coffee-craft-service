@@ -214,6 +214,20 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus) =>
     });
 };
 
+// Function to get ALL orders (for Admin/Staff)
+export const getAllOrders = async () => {
+    // Consider adding pagination, filtering, sorting options here for production
+    return prisma.order.findMany({
+        include: {
+            user: { select: { id: true, name: true, email: true } }, // Include basic user info
+        },
+        orderBy: {
+            createdAt: 'desc' // Default sort by newest
+        }
+    });
+};
+
+
 // Function to cancel an order (by user or Staff/Admin)
 export const cancelOrder = async (orderId: string, userId: string, userRole: string) => {
     return prisma.$transaction(async (tx) => {

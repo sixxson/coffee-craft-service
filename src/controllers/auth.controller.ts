@@ -115,7 +115,7 @@ export const login = async (req: Request, res: Response) => {
   const token = generateToken(user.id, user.role);
 
   // Set token in HTTP-only cookie and return user info
-  const { password: _, ...userWithoutPassword } = user;
+  const { password: _, id, ...userWithoutPassword } = user;
   res
     .cookie("access_token", token, COOKIE_OPTIONS)
     .status(200)

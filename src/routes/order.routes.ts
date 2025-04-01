@@ -1,11 +1,13 @@
 // src/routes/order.routes.ts
 import express from "express";
 import {
-  handleCreateOrder,
+  handleCreateOrder, // Keep one
+  // handleCreateOrder, // Remove duplicate
   handleGetMyOrders,
   handleGetOrderById,
   handleUpdateOrderStatus,
   handleCancelOrder,
+  handleGetAllOrders, // Import the new handler
 } from "../controllers/order.controller";
 import { authenticate, isStaffOrAdmin } from "../middlewares/auth.middleware";
 import { validateRequestBody } from "../middlewares/validation.middleware";
@@ -19,10 +21,13 @@ const router = express.Router();
 // Apply authentication middleware to all order routes
 router.use(authenticate);
 
-// POST /api/orders - Create a new order
+// GET /api/orders - Get all orders (Admin/Staff only)
+router.get("/", isStaffOrAdmin, handleGetAllOrders); // Add the new route
+
+// POST /api/orders - Create a new order (Customer)
 router.post("/", validateRequestBody(createOrderSchema), handleCreateOrder);
 
-// GET /api/orders/myorders - Get orders for the logged-in user
+// GET /api/orders/myorders - Get orders for the logged-in user (Customer)
 router.get("/myorders", handleGetMyOrders);
 
 // GET /api/orders/:id - Get a specific order by ID (user must own it or be admin/staff)

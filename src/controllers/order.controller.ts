@@ -6,7 +6,8 @@ import {
     getOrdersByUserId,
     getOrderById,
     updateOrderStatus,
-    cancelOrder
+    cancelOrder,
+    getAllOrders // Import the new service function
 } from '../services/order.service';
 import { PaymentMethod, OrderStatus } from '@prisma/client'; // Import enums
 
@@ -37,6 +38,17 @@ export const handleCreateOrder = asyncHandler(async (req: Request, res: Response
         throw new Error(error.message || 'Failed to create order');
     }
 });
+
+// @desc    Get all orders (for Admin/Staff)
+// @route   GET /api/orders
+// @access  Private (Staff/Admin)
+export const handleGetAllOrders = asyncHandler(async (req: Request, res: Response) => {
+    // Authorization is handled by the isStaffOrAdmin middleware in the route
+    const orders = await getAllOrders();
+    res.status(200).json(orders);
+    // No specific error handling needed here unless getAllOrders throws something specific
+});
+
 
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders
