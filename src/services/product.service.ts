@@ -19,7 +19,7 @@ async function getAllProducts(options: any): Promise<any[]> {
     page = 1,
     limit = 100,
     sortBy,
-    sortOrder,
+    sortOrder = "desc",
     categoryId,
     brandId,
     minPrice,
@@ -50,7 +50,7 @@ async function getAllProducts(options: any): Promise<any[]> {
         brand: true,
         orderItems: true,
       },
-      orderBy: sortBy && sortOrder ? { [sortBy]: sortOrder } : undefined,
+      orderBy: sortBy && sortOrder ? { [sortBy]: sortOrder } : { createdAt: "desc" },
     }),
     prisma.product.count({ where }),
   ]);

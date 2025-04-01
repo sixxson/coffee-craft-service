@@ -1,131 +1,83 @@
-import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-import { hashPassword } from "../utils/utils";
-import * as bCrypt from "bcrypt";
+import { Request, Response, NextFunction } from "express";
+import * as userService from "../services/user.service";
+import { UserRole } from "@prisma/client";
 
-const prisma = new PrismaClient({
-  log: ["error"],
-});
-
-export const getUserById = async (req: Request, res: Response) => {
-  const userId = req.params.id;
-  if (!userId) {
-    res.status(400).json({ message: "Invalid user ID" });
-    return;
-  }
-
-  // Get user data
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
-
-  res.json(user);
-};
-
-export const updateUser = async (req: Request, res: Response) => {
-  const userId = req.params.id;
-  if (!userId) {
-    res.status(400).json({ message: "Invalid user ID" });
-    return;
-  }
-
-  if (req.user?.role === "CUSTOMER" && userId !== req.user.id) {
-    res
-      .status(403)
-      .json({ message: "Access forbidden, cannot update another user" });
-    return;
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
-
-  // Prepare update data from validated req.body
-  const data: any = { ...req.body }; // Spread validated fields
-
-  // Handle password hashing separately if present in validated data
-  if (data.password) {
-    if (req.user?.role === "CUSTOMER") {
-      if (!data.oldPassword) {
-        res.status(400).json({ message: "Old password is required" });
-        return;
-      }
-      const passwordMatch = await bCrypt.compare(
-        data.oldPassword,
-        user.password
-      );
-      if (!passwordMatch) {
-        res.status(401).json({ message: "Old password is incorrect" });
-        return;
-      }
-    }
-    data.password = await hashPassword(data.password);
-  }
-
-  // Remove fields that shouldn't be directly updated this way (e.g., email, role unless admin)
-  // The updateUserProfileSchema already prevents role/email, but good practice if schemas change
-  delete data.email;
-  delete data.oldPassword;
-  // Update user
+// Controller to get all users
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data, // Use the prepared data object
-    });
-    const { password, ...userWithoutPass } = updatedUser;
-    res.json(userWithoutPass);
+    const users = await userService.getAllUsersService();
+    res.json(users);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error); // Pass error to the central error handler
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+// Controller to get a user by ID
+export const getUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const userId = req.params.id;
-  if (!userId) {
-    res.status(400).json({ message: "Invalid user ID" });
-    return;
-  }
+  // Removed redundant userId check
 
-  // Delete user
   try {
-    await prisma.user.delete({ where: { id: userId } });
-    res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    if ((error as any).code === "P2025") {
-      // Prisma error code for record not found
-      res.status(404).json({ message: "User not found" });
-      return;
+    const user = await userService.getUserByIdService(userId);
+    if (!user) {
+      // Use standard error with statusCode for the error handler
+      throw Object.assign(new Error("User not found"), { statusCode: 404 });
     }
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.json(user);
+  } catch (error) {
+    next(error); // Pass error to the central error handler
   }
 };
 
-export const getAllUsers = async (req: Request, res: Response) => {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-  res.json(users);
+// Controller to update a user
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userIdToUpdate = req.params.id;
+  const updateData = req.body; // Assumes validation middleware has run
+  const requestingUserId = req.user?.id; // Get ID from authenticated user (JWT)
+  // Cast the string role from JWT to the UserRole enum type
+  const requestingUserRole = req.user?.role as UserRole | undefined;
+
+  // Removed redundant userId check and user reconstruction logic
+
+  try {
+    // Pass the necessary arguments to the updated service function
+    const updatedUser = await userService.updateUserService(
+      userIdToUpdate,
+      updateData,
+      requestingUserId,
+      requestingUserRole
+    );
+    res.json(updatedUser);
+  } catch (error) {
+    next(error); // Pass error to the central error handler
+  }
+};
+
+// Controller to delete a user
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.params.id;
+  // Removed redundant userId check
+
+  try {
+    await userService.deleteUserService(userId);
+    res.status(200).json({ message: "User deleted successfully" }); // Send 200 OK on successful deletion
+  } catch (error) {
+    next(error); // Pass error to the central error handler
+  }
 };
