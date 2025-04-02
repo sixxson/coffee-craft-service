@@ -9,7 +9,7 @@ import {
     cancelOrder,
     getAllOrders // Import the new service function
 } from '../services/order.service';
-import { PaymentMethod, OrderStatus } from '@prisma/client'; // Import enums
+import { PaymentMethod, OrderStatus, User, UserRole } from '@prisma/client'; // Import enums
 
 
 // @desc    Create new order
@@ -103,7 +103,7 @@ export const handleUpdateOrderStatus = asyncHandler(async (req: Request, res: Re
 export const handleCancelOrder = asyncHandler(async (req: Request, res: Response) => {
     const orderId = req.params.id;
     const userId = req.user.id;
-    const userRole = req.user.role;
+    const userRole = req.user.role as UserRole;
 
     if (!userId || !userRole) {
          // Should be guaranteed by authenticate middleware

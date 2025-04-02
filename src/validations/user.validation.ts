@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { GENDER } from "@prisma/client"; // Import GENDER enum
 
 // Schema for updating user profile information (by the user themselves)
 export const updateUserProfileSchema = Joi.object({
@@ -21,7 +22,9 @@ export const updateUserProfileSchema = Joi.object({
     // Validate as URI if it's a URL
     "string.uri": "Image URL must be a valid URL if provided",
   }),
-  gender: Joi.string().optional().allow(null, ""), // Add specific values if it's an enum e.g., .valid('Male', 'Female', 'Other')
+  gender: Joi.string().valid(...Object.values(GENDER)).optional().allow(null, "").messages({ // Use GENDER enum
+    "any.only": "Invalid gender value",
+  }),
   dob: Joi.date().iso().optional().allow(null).messages({
     // ISO 8601 date format (YYYY-MM-DD)
     "date.format": "Date of birth must be in YYYY-MM-DD format if provided",
@@ -45,9 +48,11 @@ export const adminUpdateUserSchema = Joi.object({
     .max(15),
   address: Joi.string().optional().allow(null, ""),
   imgUrl: Joi.string().uri().optional().allow(null, ""),
-  gender: Joi.string().optional().allow(null, ""),
+  gender: Joi.string().valid(...Object.values(GENDER)).optional().allow(null, "").messages({ // Use GENDER enum
+    "any.only": "Invalid gender value",
+  }),
   dob: Joi.date().iso().optional().allow(null),
-  oldPassword: Joi.string().optional().allow(""),
-  role: Joi.string().valid("CUSTOMER", "STAFF", "ADMIN").optional(), // Example: Allow role update
-  // Add other fields admin can update
+  isActive: Joi.boolean().optional(), // Added isActive for admin updates
+  // emailVerified and lastLogin are typically managed internally
+  role: Joi.string().valid("CUSTOMER", "STAFF", "ADMIN").optional(),
 }).min(1);

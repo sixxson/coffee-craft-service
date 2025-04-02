@@ -1,4 +1,4 @@
-import { PrismaClient, User, UserRole } from "@prisma/client"; // Corrected Role to UserRole
+import { PrismaClient, User, UserRole, GENDER } from "@prisma/client"; // Added GENDER enum import
 import { hashPassword } from "../utils/utils";
 import * as bCrypt from "bcrypt";
 // Removed HttpError import as it's not defined
@@ -12,9 +12,18 @@ export interface SafeUser {
   id: string;
   name: string | null;
   email: string;
-  role: UserRole; // Corrected Role to UserRole
+  phone: string | null; // Added
+  address: string | null; // Added
+  imgUrl: string | null; // Added
+  gender: GENDER | null; // Added (Import GENDER if not already)
+  dob: Date | null; // Added
+  role: UserRole;
+  emailVerified: boolean; // Added
+  lastLogin: Date | null; // Added
+  isActive: boolean; // Added
   createdAt: Date;
   updatedAt: Date;
+  // Consider adding counts or basic relations if needed for summaries
 }
 
 // Define an interface for the update payload
@@ -22,16 +31,30 @@ interface UpdateUserData {
   name?: string;
   password?: string;
   oldPassword?: string; // Only used for validation, not stored
-  // Add other updatable fields as needed
+  phone?: string | null; // Added
+  address?: string | null; // Added
+  imgUrl?: string | null; // Added
+  gender?: GENDER | null; // Added
+  dob?: Date | string | null; // Added (allow string for input, convert later)
+  isActive?: boolean; // Added (Likely admin only)
+  role?: UserRole; // Added (Likely admin only)
 }
 
 export const getAllUsersService = async (): Promise<SafeUser[]> => {
   const users = await prisma.user.findMany({
     select: {
-      id: true,
+      id: true, // Keep only one id
       name: true,
       email: true,
+      phone: true, // Added
+      address: true, // Added
+      imgUrl: true, // Added
+      gender: true, // Added
+      dob: true, // Added
       role: true,
+      emailVerified: true, // Added
+      lastLogin: true, // Added
+      isActive: true, // Added
       createdAt: true,
       updatedAt: true,
     },
@@ -44,13 +67,29 @@ export const getUserByIdService = async (
 ): Promise<SafeUser | null> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include:{
-      orders: true,
-      shippingAddresses: true,
-      reviews: true,
+    // Select specific fields instead of including everything by default
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      imgUrl: true,
+      gender: true,
+      dob: true,
+      role: true,
+      emailVerified: true,
+      lastLogin: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+      // Include related data selectively if needed for this specific view
+      // orders: { select: { id: true, finalTotal: true, status: true, createdAt: true }, take: 5, orderBy: { createdAt: 'desc'} },
+      // shippingAddresses: { select: { id: true, address: true, receiverName: true } },
+      // reviews: { select: { id: true, rating: true, comment: true, createdAt: true }, take: 5, orderBy: { createdAt: 'desc'} }
     }
-    
   });
+  // Prisma returns null if not found, no need for explicit check before return
   return user;
 };
 
@@ -101,19 +140,42 @@ export const updateUserService = async (
   if (data.name !== undefined) {
     updateData.name = data.name;
   }
-  // Add other fields here...
+  // Add other updatable fields
+  if (data.phone !== undefined) updateData.phone = data.phone;
+  if (data.address !== undefined) updateData.address = data.address;
+  if (data.imgUrl !== undefined) updateData.imgUrl = data.imgUrl;
+  if (data.gender !== undefined) updateData.gender = data.gender;
+  if (data.dob !== undefined) {
+      // Ensure dob is a Date object or null
+      updateData.dob = data.dob ? new Date(data.dob) : null;
+  }
 
-  // Prevent updating email or role directly through this service function
-  // These should likely have dedicated functions or stricter checks if allowed
+  // Admin/Staff specific updates (ensure role check allows this)
+  if (requestingUserRole === UserRole.ADMIN || requestingUserRole === UserRole.STAFF) {
+      if (data.isActive !== undefined) updateData.isActive = data.isActive;
+      if (data.role !== undefined) {
+          // Add validation if necessary (e.g., prevent demoting self)
+          updateData.role = data.role;
+      }
+      // Admin might be able to reset password without oldPassword - add logic if needed
+  }
+
+  // Prevent updating email directly through this generic update function
+  // Email changes usually require verification and should have a dedicated process
 
   try {
     const updatedUser = await prisma.user.update({
-      where: { id: userIdToUpdate }, // Use userIdToUpdate
+      where: { id: userIdToUpdate },
       data: updateData,
+      // Select the fields matching SafeUser to return
+      select: {
+        id: true, name: true, email: true, phone: true, address: true,
+        imgUrl: true, gender: true, dob: true, role: true, emailVerified: true,
+        lastLogin: true, isActive: true, createdAt: true, updatedAt: true
+      }
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPass } = updatedUser;
-    return userWithoutPass;
+    // No need to manually remove password as `select` excludes it
+    return updatedUser;
   } catch (error) {
     console.error("Error updating user:", error);
     // Throw standard error with statusCode

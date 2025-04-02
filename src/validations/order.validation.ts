@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { OrderStatus, PaymentMethod } from '@prisma/client'; // Import enums if needed for validation
+import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client'; // Import enums
 
 // Schema for a single order item within the create order request
 const orderItemSchema = Joi.object({
@@ -7,13 +7,16 @@ const orderItemSchema = Joi.object({
     'string.guid': 'Product ID must be a valid UUID',
     'any.required': 'Product ID is required for each item',
   }),
+  productVariantId: Joi.string().uuid().optional().allow(null, '').messages({ // Added optional productVariantId
+    'string.guid': 'Product Variant ID must be a valid UUID',
+  }),
   quantity: Joi.number().integer().min(1).required().messages({
     'number.base': 'Quantity must be a number',
     'number.integer': 'Quantity must be an integer',
     'number.min': 'Quantity must be at least 1',
     'any.required': 'Quantity is required for each item',
   }),
-  // subTotal is usually calculated on the backend, not provided by the client
+  // priceAtOrder, subTotal, discountAmount are calculated on the backend
 });
 
 // Schema for creating a new order
@@ -54,4 +57,16 @@ export const updateOrderStatusSchema = Joi.object({
       'any.only': 'Invalid order status',
       'any.required': 'Order status is required',
     }),
+});
+
+// Schema for updating order payment status (e.g., by admin/staff or payment gateway callback)
+export const updateOrderPaymentStatusSchema = Joi.object({
+  paymentStatus: Joi.string()
+    .valid(...Object.values(PaymentStatus)) // Validate against enum values
+    .required()
+    .messages({
+      'any.only': 'Invalid payment status',
+      'any.required': 'Payment status is required',
+    }),
+  transactionId: Joi.string().optional().allow(null, ''), // Optional transaction ID
 });
