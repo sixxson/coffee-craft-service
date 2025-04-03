@@ -12,7 +12,10 @@ import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 import orderRoutes from "./routes/order.routes";
 import shippingAddressRoutes from "./routes/shippingAddress.routes";
-import tagRoutes from "./routes/tag.routes"; // Import tag routes
+import tagRoutes from "./routes/tag.routes";
+import reviewRoutes from "./routes/review.routes";
+import voucherRoutes from "./routes/voucher.routes";
+import blogRoutes from "./routes/blog.routes"; // Import blog routes
 
 dotenv.config();
 
@@ -50,7 +53,15 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/orders", orderRoutes);
 app.use("/shipping-addresses", shippingAddressRoutes);
-app.use("/tags", tagRoutes); // Mount tag routes
+app.use("/tags", tagRoutes);
+app.use("/reviews", reviewRoutes);
+app.use("/vouchers", voucherRoutes);
+app.use("/blogs", blogRoutes); // Mount blog routes
+
+// Optional: Mount product-specific reviews under products
+// This requires adjusting review.routes.ts or creating a separate router
+// Example: app.use('/products/:productId/reviews', productReviewRouter);
+
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
