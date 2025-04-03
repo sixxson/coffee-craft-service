@@ -5,6 +5,8 @@ import compression from "compression";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import swaggerUi from 'swagger-ui-express'; // Import swagger-ui-express
+import swaggerSpec from './config/swagger.config'; // Import the generated spec
 import productRoutes from "./routes/product.routes";
 import categoryRoutes from "./routes/category.routes";
 import brandRoutes from "./routes/brand.routes";
@@ -56,7 +58,18 @@ app.use("/shipping-addresses", shippingAddressRoutes);
 app.use("/tags", tagRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/vouchers", voucherRoutes);
-app.use("/blogs", blogRoutes); // Mount blog routes
+app.use("/blogs", blogRoutes);
+
+// --- Swagger UI Setup ---
+// Serve Swagger UI at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// You can also serve the raw JSON spec
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+// -----------------------
+
 
 // Optional: Mount product-specific reviews under products
 // This requires adjusting review.routes.ts or creating a separate router

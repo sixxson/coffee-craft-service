@@ -1,6 +1,31 @@
 import Joi from "joi";
 import { GENDER } from "@prisma/client"; // Import GENDER enum
 
+// Schema for user registration
+export const registerUserSchema = Joi.object({
+    email: Joi.string().email().required().messages({
+        'string.email': 'Email must be a valid email address',
+        'any.required': 'Email is required',
+    }),
+    password: Joi.string().min(6).required().messages({
+        'string.min': 'Password must be at least 6 characters long',
+        'any.required': 'Password is required',
+    }),
+    name: Joi.string().optional().allow(''),
+});
+
+// Schema for user login
+export const loginUserSchema = Joi.object({
+    email: Joi.string().email().required().messages({
+        'string.email': 'Email must be a valid email address',
+        'any.required': 'Email is required',
+    }),
+    password: Joi.string().required().messages({
+        'any.required': 'Password is required',
+    }),
+});
+
+
 // Schema for updating user profile information (by the user themselves)
 export const updateUserProfileSchema = Joi.object({
   name: Joi.string().optional().allow("").messages({
