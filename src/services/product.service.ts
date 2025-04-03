@@ -46,8 +46,6 @@ async function getAllProducts(options: any): Promise<any[]> {
       take: parseInt(limit),
       include: {
         images: true, // Keep one instance
-        category: true,
-        brand: true,
         tags: true, // Include tags
         variants: true, // Include variants
         // orderItems: true, // Maybe not needed for general product list? Keep if necessary.

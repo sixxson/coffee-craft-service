@@ -12,6 +12,7 @@ import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 import orderRoutes from "./routes/order.routes";
 import shippingAddressRoutes from "./routes/shippingAddress.routes";
+import tagRoutes from "./routes/tag.routes"; // Import tag routes
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/orders", orderRoutes);
 app.use("/shipping-addresses", shippingAddressRoutes);
+app.use("/tags", tagRoutes); // Mount tag routes
 
 // Graceful shutdown
 process.on("SIGTERM", () => {

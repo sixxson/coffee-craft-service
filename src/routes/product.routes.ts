@@ -8,6 +8,7 @@ import {
   createProductSchema,
   updateProductSchema,
 } from "../validations/product.validation";
+import productVariantRouter from "./productVariant.routes"; // Import the variant router
 
 const router = express.Router();
 
@@ -38,5 +39,8 @@ router.delete(
   //  isAdmin,
   productController.deleteProduct
 );
+
+// Mount the variant router under /:productId/variants
+router.use("/:productId/variants", productVariantRouter);
 
 export default router;
