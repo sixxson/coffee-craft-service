@@ -105,6 +105,43 @@ This document outlines the available API endpoints for the Coffee Craft Service.
     -   Controller: `deleteProduct`
     -   *Note: Authentication/Admin checks are commented out in the route file.*
 
+## Product Variants (`/products/:productId/variants`)
+
+*Note: These routes are likely nested under a specific product.*
+*Note: Authentication/Admin checks might apply, similar to Products.*
+
+-   **`GET /products/:productId/variants`**: Get all variants for a specific product.
+    -   Controller: `getProductVariants`
+-   **`GET /products/:productId/variants/:variantId`**: Get a specific product variant by its ID.
+    -   Controller: `getVariant`
+-   **`POST /products/:productId/variants`**: Create a new variant for a specific product.
+    -   Middleware: `validateRequestBody(createVariantSchema)`
+    -   Controller: `createVariantHandler`
+-   **`PUT /products/:productId/variants/:variantId`**: Update an existing product variant by its ID.
+    -   Middleware: `validateRequestBody(updateVariantSchema)`
+    -   Controller: `updateVariantHandler`
+-   **`DELETE /products/:productId/variants/:variantId`**: Delete a product variant by its ID.
+    -   Controller: `deleteVariantHandler`
+
+
+## Tags (`/tags`)
+
+*Note: Authentication/Admin checks might apply for modification endpoints (currently commented out in routes).*
+
+-   **`GET /tags`**: Get a list of all tags.
+    -   Controller: `getTags`
+-   **`GET /tags/:id`**: Get a specific tag by its ID.
+    -   Controller: `getTag`
+-   **`POST /tags`**: Create a new tag.
+    -   Middleware: `validateRequestBody(createTagSchema)`
+    -   Controller: `createTagHandler`
+-   **`PUT /tags/:id`**: Update an existing tag by its ID.
+    -   Middleware: `validateRequestBody(updateTagSchema)`
+    -   Controller: `updateTagHandler`
+-   **`DELETE /tags/:id`**: Delete a tag by its ID.
+    -   Controller: `deleteTagHandler`
+
+
 ## Shipping Addresses (`/shipping-addresses`)
 
 *Note: All shipping address routes require authentication via the `authenticate` middleware.*

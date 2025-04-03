@@ -106,8 +106,8 @@ export const updateProductSchema = Joi.object({
   name: Joi.string().optional().messages({
     "string.empty": "Product name cannot be empty if provided",
   }),
-  shortDescription: Joi.string().optional().allow(""), // Added optional shortDescription
-  longDescription: Joi.string().optional().allow(""), // Added optional longDescription
+  shortDescription: Joi.string().optional().allow(null, ""),
+  longDescription: Joi.string().optional().allow(null, ""),
   price: Joi.number().positive().optional().messages({
     "number.base": "Price must be a number",
     "number.positive": "Price must be a positive number",
@@ -120,7 +120,7 @@ export const updateProductSchema = Joi.object({
   categoryId: Joi.string().uuid().optional().messages({
     "string.guid": "Category ID must be a valid UUID",
   }),
-  brandId: Joi.string().uuid().optional().messages({
+  brandId: Joi.string().uuid().optional().allow(null, "").messages({
     "string.guid": "Brand ID must be a valid UUID",
   }),
   stock: Joi.number().integer().min(0).optional().messages({
