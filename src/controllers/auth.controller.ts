@@ -20,14 +20,6 @@ const registerSchema = Joi.object({
   // dob: Joi.string(),
 });
 
-// Define cookie options
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  // secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  maxAge: 3600000, // 1 hour in milliseconds (matching TOKEN_EXPIRATION)
-};
-
 export const register = async (req: Request, res: Response) => {
   const { error } = registerSchema.validate(req.body);
   if (error) {
@@ -74,7 +66,12 @@ export const register = async (req: Request, res: Response) => {
     // Generate token and set cookie
     const token = generateToken(user.id, user.role);
     res
-      .cookie("access_token", token, COOKIE_OPTIONS)
+      .cookie("access_token", token, {
+        path: "/",
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        httpOnly: true, // cookie nay chi đc truy cap boi server
+        sameSite: "lax",
+      })
       .status(201)
       .json(userWithoutPass);
   } catch (error) {
@@ -117,7 +114,12 @@ export const login = async (req: Request, res: Response) => {
   // Set token in HTTP-only cookie and return user info
   const { password: _, id, ...userWithoutPassword } = user;
   res
-    .cookie("access_token", token, COOKIE_OPTIONS)
+    .cookie("access_token", token, {
+      path: "/",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      httpOnly: true, // cookie nay chi đc truy cap boi server
+      sameSite: "lax",
+    })
     .status(200)
     .json({ user: userWithoutPassword });
 };
