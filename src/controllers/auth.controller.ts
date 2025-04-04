@@ -69,8 +69,9 @@ export const register = async (req: Request, res: Response) => {
       .cookie("access_token", token, {
         path: "/",
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        httpOnly: true, // cookie nay chi đc truy cap boi server
-        sameSite: "lax",
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
       })
       .status(201)
       .json(userWithoutPass);
@@ -117,8 +118,9 @@ export const login = async (req: Request, res: Response) => {
     .cookie("access_token", token, {
       path: "/",
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-      httpOnly: true, // cookie nay chi đc truy cap boi server
-      sameSite: "lax",
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
     })
     .status(200)
     .json({ user: userWithoutPassword });
