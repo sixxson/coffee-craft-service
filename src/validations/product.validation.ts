@@ -11,10 +11,7 @@ const productImageSchema = Joi.object({
 });
 
 // Schema for Tag (assuming tag names are passed)
-const tagSchema = Joi.string().required().messages({
-  "string.empty": "Tag name cannot be empty",
-  "any.required": "Tag name is required",
-});
+const tagSchema = Joi.string().optional().allow(null);
 
 // Schema for Product Variant
 const productVariantSchema = Joi.object({

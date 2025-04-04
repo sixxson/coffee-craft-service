@@ -50,7 +50,8 @@ async function getAllProducts(options: any): Promise<any[]> {
         variants: true, // Include variants
         // orderItems: true, // Maybe not needed for general product list? Keep if necessary.
       },
-      orderBy: sortBy && sortOrder ? { [sortBy]: sortOrder } : { createdAt: "desc" },
+      orderBy:
+        sortBy && sortOrder ? { [sortBy]: sortOrder } : { createdAt: "desc" },
     }),
     prisma.product.count({ where }),
   ]);
@@ -79,28 +80,30 @@ async function createProduct(data: any): Promise<any> {
   const { images, tags, variants, categoryId, brandId, ...productData } = data;
 
   // Prepare nested writes for relations
-  const imageData = images?.map((img: any, index: number) => ({
-    url: img.url,
-    order: img.order ?? index,
-    isThumbnail: img.isThumbnail ?? false,
-  })) || [];
+  const imageData =
+    images?.map((img: any, index: number) => ({
+      url: img.url,
+      order: img.order ?? index,
+      isThumbnail: img.isThumbnail ?? false,
+    })) || [];
 
-  const tagData = tags?.map((tagName: string) => ({
-    where: { name: tagName },
-    create: { name: tagName },
-  })) || [];
+  const tagData =
+    tags?.map((tagName: string) => ({
+      where: { name: tagName },
+      create: { name: tagName },
+    })) || [];
 
-  const variantData = variants?.map((variant: any) => ({
-    sku: variant.sku,
-    price: variant.price,
-    discountPrice: variant.discountPrice,
-    stock: variant.stock,
-    name: variant.name,
-    color: variant.color,
-    weight: variant.weight,
-    material: variant.material,
-  })) || [];
-
+  const variantData =
+    variants?.map((variant: any) => ({
+      sku: variant.sku,
+      price: variant.price,
+      discountPrice: variant.discountPrice,
+      stock: variant.stock,
+      name: variant.name,
+      color: variant.color,
+      weight: variant.weight,
+      material: variant.material,
+    })) || [];
 
   const createdProduct = await prisma.product.create({
     data: {
@@ -117,7 +120,8 @@ async function createProduct(data: any): Promise<any> {
         create: variantData,
       },
     },
-    include: { // Include relations in the returned object
+    include: {
+      // Include relations in the returned object
       images: true,
       category: true,
       brand: true,
@@ -136,10 +140,11 @@ async function updateProduct(id: string, data: any): Promise<any | null> {
   // --- Prepare updates for relations ---
 
   // Tags: Use 'set' to replace existing tags with the new list
-  const tagConnections = tags?.map((tagName: string) => ({
+  const tagConnections =
+    tags?.map((tagName: string) => ({
       where: { name: tagName },
       create: { name: tagName },
-  })) || [];
+    })) || [];
 
   // Variants & Images: More complex updates (create/update/delete) might require transactions
   // or separate logic. For simplicity here, we'll focus on updating the product data
@@ -162,7 +167,8 @@ async function updateProduct(id: string, data: any): Promise<any | null> {
       // 3. Create new ones.
       // This often involves prisma.$transaction([...])
     },
-    include: { // Include relations in the returned object
+    include: {
+      // Include relations in the returned object
       images: true,
       category: true,
       brand: true,
@@ -202,6 +208,7 @@ async function deleteProduct(productId: string): Promise<void> {
 }
 async function getImages(options: any): Promise<any> {
   const { productId } = options;
+  console.log("🚀 ~ getImages ~ productId:", productId)
   return await prisma.productImage.findMany({
     where: productId ? { productId } : {},
   });

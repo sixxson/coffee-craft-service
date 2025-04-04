@@ -239,6 +239,124 @@ const router = express.Router();
  *         # Note: images and variants are typically updated via their own endpoints
  */
 
+// --- Product Image Routes (Consider nesting under /:productId/images) ---
+
+/**
+ * @swagger
+ * /products/image:
+ *   get:
+ *     summary: Get product images (likely needs filtering)
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: productId
+ *         schema: { type: string, format: uuid }
+ *         description: Filter images by product ID
+ *     responses:
+ *       200:
+ *         description: List of product images.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductImage'
+ */
+router.get("/image", productController.getProductImages);
+
+/**
+ * @swagger
+ * /products/image:
+ *   post:
+ *     summary: Create product image(s)
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array # Assuming batch creation is supported by controller
+ *             items:
+ *               type: object
+ *               required: [productId, url]
+ *               properties:
+ *                 productId: { type: string, format: uuid }
+ *                 url: { type: string, format: uri }
+ *                 order: { type: integer }
+ *                 isThumbnail: { type: boolean }
+ *     responses:
+ *       200: # Or 201 if returning created objects
+ *         description: Images uploaded successfully.
+ *       400: { description: Validation error or no images provided }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden }
+ *       404: { description: Product not found }
+ */
+router.post("/image", /* authenticate, isAdmin, */ productController.createProductImage);
+
+/**
+ * @swagger
+ * /products/image/{id}:
+ *   put:
+ *     summary: Update a product image
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *         description: ID of the image to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url: { type: string, format: uri }
+ *               order: { type: integer }
+ *               isThumbnail: { type: boolean }
+ *               productId: { type: string, format: uuid, description: "Required if changing thumbnail status" }
+ *     responses:
+ *       200:
+ *         description: Image updated successfully.
+ *       400: { description: Validation error }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden }
+ *       404: { description: Image or Product not found }
+ */
+router.put("/image/:id", /* authenticate, isAdmin, */ productController.updateProductImage);
+
+/**
+ * @swagger
+ * /products/image/{id}:
+ *   delete:
+ *     summary: Delete a product image
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *         description: ID of the image to delete
+ *     responses:
+ *       200: # Or 204
+ *         description: Image deleted successfully.
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden }
+ *       404: { description: Image not found }
+ */
+router.delete("/image/:id", /* authenticate, isAdmin, */ productController.deleteProductImage);
+
 
 // --- Product CRUD Routes ---
 
@@ -420,126 +538,6 @@ router.delete(
   errorHandler, // Keep error handler if needed after auth
   productController.deleteProduct
 );
-
-
-// --- Product Image Routes (Consider nesting under /:productId/images) ---
-
-/**
- * @swagger
- * /products/image:
- *   get:
- *     summary: Get product images (likely needs filtering)
- *     tags: [Products]
- *     parameters:
- *       - in: query
- *         name: productId
- *         schema: { type: string, format: uuid }
- *         description: Filter images by product ID
- *     responses:
- *       200:
- *         description: List of product images.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ProductImage'
- */
-router.get("/image", productController.getProductImages);
-
-/**
- * @swagger
- * /products/image:
- *   post:
- *     summary: Create product image(s)
- *     tags: [Products]
- *     security:
- *       - cookieAuth: []
- *       # - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: array # Assuming batch creation is supported by controller
- *             items:
- *               type: object
- *               required: [productId, url]
- *               properties:
- *                 productId: { type: string, format: uuid }
- *                 url: { type: string, format: uri }
- *                 order: { type: integer }
- *                 isThumbnail: { type: boolean }
- *     responses:
- *       200: # Or 201 if returning created objects
- *         description: Images uploaded successfully.
- *       400: { description: Validation error or no images provided }
- *       401: { description: Unauthorized }
- *       403: { description: Forbidden }
- *       404: { description: Product not found }
- */
-router.post("/image", /* authenticate, isAdmin, */ productController.createProductImage);
-
-/**
- * @swagger
- * /products/image/{id}:
- *   put:
- *     summary: Update a product image
- *     tags: [Products]
- *     security:
- *       - cookieAuth: []
- *       # - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *         description: ID of the image to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               url: { type: string, format: uri }
- *               order: { type: integer }
- *               isThumbnail: { type: boolean }
- *               productId: { type: string, format: uuid, description: "Required if changing thumbnail status" }
- *     responses:
- *       200:
- *         description: Image updated successfully.
- *       400: { description: Validation error }
- *       401: { description: Unauthorized }
- *       403: { description: Forbidden }
- *       404: { description: Image or Product not found }
- */
-router.put("/image/:id", /* authenticate, isAdmin, */ productController.updateProductImage);
-
-/**
- * @swagger
- * /products/image/{id}:
- *   delete:
- *     summary: Delete a product image
- *     tags: [Products]
- *     security:
- *       - cookieAuth: []
- *       # - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string, format: uuid }
- *         description: ID of the image to delete
- *     responses:
- *       200: # Or 204
- *         description: Image deleted successfully.
- *       401: { description: Unauthorized }
- *       403: { description: Forbidden }
- *       404: { description: Image not found }
- */
-router.delete("/image/:id", /* authenticate, isAdmin, */ productController.deleteProductImage);
-
 
 // --- Nested Routes ---
 
