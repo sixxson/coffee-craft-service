@@ -5,11 +5,16 @@ const prisma = new PrismaClient();
 
 // Function to get all brands
 async function getAllBrands(options: any): Promise<any[]> {
-  const { page = 1, limit = 10, sort_by, order } = options;
+  const {
+    page = 1,
+    limit = 10,
+    sort_by = "updatedAt",
+    order = "desc",
+  } = options;
 
   return await prisma.brand.findMany({
-    skip: (page - 1) * limit,
-    take: limit,
+    // skip: (page - 1) * limit,
+    // take: limit,
     include: {
       _count: {
         select: { products: true },
@@ -95,7 +100,6 @@ async function exportBrandsToExcel(): Promise<Buffer> {
 interface BrandRow {
   Name: string;
   Description?: string;
-  Website?: string;
 }
 
 // Function to import brands from Excel
@@ -142,20 +146,18 @@ async function downloadBrandTemplate(): Promise<Buffer> {
     {
       Name: "Example Brand",
       Description: "Example Description",
-      Website: "https://example.com"
-    }
+    },
   ];
 
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(templateData);
-  
+
   // Set column widths
   const colWidths = [
     { wch: 30 }, // Name column
     { wch: 50 }, // Description column
-    { wch: 40 }  // Website column
   ];
-  worksheet['!cols'] = colWidths;
+  worksheet["!cols"] = colWidths;
 
   XLSX.utils.book_append_sheet(workbook, worksheet, "Brands");
   return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });

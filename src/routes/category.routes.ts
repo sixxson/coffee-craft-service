@@ -15,6 +15,7 @@ import {
   createCategorySchema,
   updateCategorySchema,
 } from "../validations/category.validation"; // Import schemas
+import { authenticate, isStaffOrAdmin } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -128,32 +129,6 @@ router.get("/", getCategories);
 
 /**
  * @swagger
- * /categories/{id}:
- *   get:
- *     summary: Retrieve a single category by ID
- *     tags: [Categories]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: ID of the category to retrieve
- *     responses:
- *       200:
- *         description: Category details.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Category'
- *       404:
- *         description: Category not found
- */
-router.get("/:id", getCategory);
-
-/**
- * @swagger
  * /categories:
  *   post:
  *     summary: Create a new category
@@ -185,8 +160,8 @@ router.get("/:id", getCategory);
  */
 router.post(
   "/",
-  // authenticate, // Add middleware as needed
-  // isStaffOrAdmin,
+  authenticate,
+  isStaffOrAdmin,
   validateRequestBody(createCategorySchema),
   createCategoryHandler
 );
@@ -247,8 +222,8 @@ router.post(
  */
 router.put(
   "/:id",
-  // authenticate,
-  // isStaffOrAdmin,
+  authenticate,
+  isStaffOrAdmin,
   validateRequestBody(updateCategorySchema),
   updateCategoryHandler
 );
@@ -282,12 +257,7 @@ router.put(
  *       409:
  *         description: Conflict (Cannot delete category with associated products or sub-categories)
  */
-router.delete(
-    "/:id",
-    // authenticate,
-    // isStaffOrAdmin,
-    deleteCategoryHandler
-);
+router.delete("/:id", authenticate, isStaffOrAdmin, deleteCategoryHandler);
 
 // --- Excel Import/Export Routes ---
 
@@ -313,7 +283,7 @@ router.delete(
  *       403:
  *         description: Forbidden
  */
-router.get("/export", /* authenticate, isStaffOrAdmin, */ exportCategories);
+router.get("/export", authenticate, isStaffOrAdmin, exportCategories);
 
 /**
  * @swagger
@@ -357,11 +327,11 @@ router.get("/export", /* authenticate, isStaffOrAdmin, */ exportCategories);
  *         description: Forbidden
  */
 router.post(
-    "/import",
-    // authenticate,
-    // isStaffOrAdmin,
-    upload.single("file"),
-    importCategories
+  "/import",
+  authenticate,
+  isStaffOrAdmin,
+  upload.single("file"),
+  importCategories
 );
 
 /**
@@ -380,5 +350,31 @@ router.post(
  *               format: binary
  */
 router.get("/template", downloadCategoryTemplate);
+
+/**
+ * @swagger
+ * /categories/{id}:
+ *   get:
+ *     summary: Retrieve a single category by ID
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the category to retrieve
+ *     responses:
+ *       200:
+ *         description: Category details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Category'
+ *       404:
+ *         description: Category not found
+ */
+router.get("/:id", getCategory);
 
 export default router;

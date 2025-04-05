@@ -84,10 +84,24 @@ export const getUserByIdService = async (
       createdAt: true,
       updatedAt: true,
       // Include related data selectively if needed for this specific view
-      // orders: { select: { id: true, finalTotal: true, status: true, createdAt: true }, take: 5, orderBy: { createdAt: 'desc'} },
-      // shippingAddresses: { select: { id: true, address: true, receiverName: true } },
-      // reviews: { select: { id: true, rating: true, comment: true, createdAt: true }, take: 5, orderBy: { createdAt: 'desc'} }
-    }
+      orders: {
+        select: { id: true, finalTotal: true, status: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      },
+      shippingAddresses: {
+        select: { id: true, address: true, receiverName: true },
+      },
+      reviews: {
+        select: {
+          id: true,
+          product: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
   // Prisma returns null if not found, no need for explicit check before return
   return user;
@@ -101,9 +115,15 @@ export const updateUserService = async (
   requestingUserRole: UserRole | undefined
 ): Promise<SafeUser> => {
   // Permission Check: Customer can only update their own profile
-  if (requestingUserRole === "CUSTOMER" && userIdToUpdate !== requestingUserId) {
+  if (
+    requestingUserRole === "CUSTOMER" &&
+    userIdToUpdate !== requestingUserId
+  ) {
     // Throw standard error with statusCode
-    throw Object.assign(new Error("Access forbidden, cannot update another user"), { statusCode: 403 });
+    throw Object.assign(
+      new Error("Access forbidden, cannot update another user"),
+      { statusCode: 403 }
+    );
   }
 
   // Find the user being updated
@@ -118,10 +138,13 @@ export const updateUserService = async (
   // Handle password update logic
   if (data.password) {
     // If the user is a customer, validate old password
-    if (requestingUserRole === "CUSTOMER") { // Use requestingUserRole
+    if (requestingUserRole === "CUSTOMER") {
+      // Use requestingUserRole
       if (!data.oldPassword) {
         // Throw standard error with statusCode
-        throw Object.assign(new Error("Old password is required"), { statusCode: 400 });
+        throw Object.assign(new Error("Old password is required"), {
+          statusCode: 400,
+        });
       }
       const passwordMatch = await bCrypt.compare(
         data.oldPassword,
@@ -129,7 +152,9 @@ export const updateUserService = async (
       );
       if (!passwordMatch) {
         // Throw standard error with statusCode
-        throw Object.assign(new Error("Old password is incorrect"), { statusCode: 401 });
+        throw Object.assign(new Error("Old password is incorrect"), {
+          statusCode: 401,
+        });
       }
     }
     // Hash the new password
@@ -146,18 +171,21 @@ export const updateUserService = async (
   if (data.imgUrl !== undefined) updateData.imgUrl = data.imgUrl;
   if (data.gender !== undefined) updateData.gender = data.gender;
   if (data.dob !== undefined) {
-      // Ensure dob is a Date object or null
-      updateData.dob = data.dob ? new Date(data.dob) : null;
+    // Ensure dob is a Date object or null
+    updateData.dob = data.dob ? new Date(data.dob) : null;
   }
 
   // Admin/Staff specific updates (ensure role check allows this)
-  if (requestingUserRole === UserRole.ADMIN || requestingUserRole === UserRole.STAFF) {
-      if (data.isActive !== undefined) updateData.isActive = data.isActive;
-      if (data.role !== undefined) {
-          // Add validation if necessary (e.g., prevent demoting self)
-          updateData.role = data.role;
-      }
-      // Admin might be able to reset password without oldPassword - add logic if needed
+  if (
+    requestingUserRole === UserRole.ADMIN ||
+    requestingUserRole === UserRole.STAFF
+  ) {
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.role !== undefined) {
+      // Add validation if necessary (e.g., prevent demoting self)
+      updateData.role = data.role;
+    }
+    // Admin might be able to reset password without oldPassword - add logic if needed
   }
 
   // Prevent updating email directly through this generic update function
@@ -169,17 +197,30 @@ export const updateUserService = async (
       data: updateData,
       // Select the fields matching SafeUser to return
       select: {
-        id: true, name: true, email: true, phone: true, address: true,
-        imgUrl: true, gender: true, dob: true, role: true, emailVerified: true,
-        lastLogin: true, isActive: true, createdAt: true, updatedAt: true
-      }
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        imgUrl: true,
+        gender: true,
+        dob: true,
+        role: true,
+        emailVerified: true,
+        lastLogin: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     // No need to manually remove password as `select` excludes it
     return updatedUser;
   } catch (error) {
     console.error("Error updating user:", error);
     // Throw standard error with statusCode
-    throw Object.assign(new Error("Failed to update user"), { statusCode: 500 });
+    throw Object.assign(new Error("Failed to update user"), {
+      statusCode: 500,
+    });
   }
 };
 
@@ -194,6 +235,8 @@ export const deleteUserService = async (userId: string): Promise<void> => {
     }
     console.error("Error deleting user:", error);
     // Throw standard error with statusCode
-    throw Object.assign(new Error("Failed to delete user"), { statusCode: 500 });
+    throw Object.assign(new Error("Failed to delete user"), {
+      statusCode: 500,
+    });
   }
 };

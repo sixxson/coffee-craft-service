@@ -15,6 +15,7 @@ import {
   createBrandSchema,
   updateBrandSchema,
 } from "../validations/brand.validation";
+import { authenticate, isStaffOrAdmin } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -76,6 +77,100 @@ const upload = multer({ storage: multer.memoryStorage() });
  *           type: integer
  *           nullable: true
  */
+
+// --- Excel Import/Export Routes ---
+
+/**
+ * @swagger
+ * /brands/export:
+ *   get:
+ *     summary: Export brands to Excel
+ *     tags: [Brands]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Excel file containing brand data.
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.get("/export", authenticate, isStaffOrAdmin, exportBrands);
+
+/**
+ * @swagger
+ * /brands/import:
+ *   post:
+ *     summary: Import brands from Excel file
+ *     tags: [Brands]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Excel file (.xlsx) to import.
+ *     responses:
+ *       200:
+ *         description: Import process summary.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Number of brands successfully imported.
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: List of errors encountered during import.
+ *       400:
+ *         description: No file uploaded or invalid file format.
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.post(
+  "/import",
+  authenticate,
+  isStaffOrAdmin,
+  upload.single("file"),
+  importBrands as express.RequestHandler
+);
+
+/**
+ * @swagger
+ * /brands/template:
+ *   get:
+ *     summary: Download Excel template for importing brands
+ *     tags: [Brands]
+ *     responses:
+ *       200:
+ *         description: Excel template file.
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+router.get("/template", downloadBrandTemplate);
 
 // --- CRUD Routes ---
 
@@ -278,104 +373,9 @@ router.put(
  *         description: Brand not found
  */
 router.delete(
-    "/:id",
-    // authenticate,
-    // isStaffOrAdmin,
-    deleteBrandHandler as express.RequestHandler
-);
-
-// --- Excel Import/Export Routes ---
-
-/**
- * @swagger
- * /brands/export:
- *   get:
- *     summary: Export brands to Excel
- *     tags: [Brands]
- *     security:
- *       - cookieAuth: []
- *       # - bearerAuth: []
- *     responses:
- *       200:
- *         description: Excel file containing brand data.
- *         content:
- *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
- *             schema:
- *               type: string
- *               format: binary
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden
- */
-router.get("/export", /* authenticate, isStaffOrAdmin, */ exportBrands);
-
-/**
- * @swagger
- * /brands/import:
- *   post:
- *     summary: Import brands from Excel file
- *     tags: [Brands]
- *     security:
- *       - cookieAuth: []
- *       # - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: Excel file (.xlsx) to import.
- *     responses:
- *       200:
- *         description: Import process summary.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: integer
- *                   description: Number of brands successfully imported.
- *                 errors:
- *                   type: array
- *                   items:
- *                     type: string
- *                   description: List of errors encountered during import.
- *       400:
- *         description: No file uploaded or invalid file format.
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden
- */
-router.post(
-  "/import",
+  "/:id",
   // authenticate,
   // isStaffOrAdmin,
-  upload.single("file"),
-  importBrands as express.RequestHandler
+  deleteBrandHandler as express.RequestHandler
 );
-
-/**
- * @swagger
- * /brands/template:
- *   get:
- *     summary: Download Excel template for importing brands
- *     tags: [Brands]
- *     responses:
- *       200:
- *         description: Excel template file.
- *         content:
- *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
- *             schema:
- *               type: string
- *               format: binary
- */
-router.get("/template", downloadBrandTemplate);
-
 export default router;

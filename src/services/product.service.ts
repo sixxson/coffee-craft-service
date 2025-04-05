@@ -62,11 +62,34 @@ async function getProductById(id: string): Promise<any | null> {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      images: true, // Already included
-      category: true,
-      brand: true,
-      tags: true, // Include tags
-      variants: true, // Include variants
+      images: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
+      brand: {
+        select: {
+          name: true,
+        },
+      },
+      tags: true,
+      variants: true,
+      reviews: {
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          user: {
+            select: {
+              name: true,
+              imgUrl: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
   if (!product) {
@@ -208,7 +231,6 @@ async function deleteProduct(productId: string): Promise<void> {
 }
 async function getImages(options: any): Promise<any> {
   const { productId } = options;
-  console.log("🚀 ~ getImages ~ productId:", productId)
   return await prisma.productImage.findMany({
     where: productId ? { productId } : {},
   });
