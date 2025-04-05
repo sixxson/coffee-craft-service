@@ -18,6 +18,11 @@ import tagRoutes from "./routes/tag.routes";
 import reviewRoutes from "./routes/review.routes";
 import voucherRoutes from "./routes/voucher.routes";
 import blogRoutes from "./routes/blog.routes"; // Import blog routes
+import revenueStatsRoutes from "./routes/stats/revenue.routes"; // Import revenue stats routes
+import productStatsRoutes from "./routes/stats/product.routes"; // Import product stats routes
+import userStatsRoutes from "./routes/stats/user.routes"; // Import user stats routes
+import voucherStatsRoutes from "./routes/stats/voucher.routes"; // Import voucher stats routes
+import reviewStatsRoutes from "./routes/stats/review.routes"; // Import review stats routes
 
 dotenv.config();
 
@@ -57,6 +62,11 @@ app.use("/tags", tagRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/vouchers", voucherRoutes);
 app.use("/blogs", blogRoutes);
+app.use("/stats/revenue", revenueStatsRoutes); // Mount revenue stats routes
+app.use("/stats/products", productStatsRoutes); // Mount product stats routes
+app.use("/stats/users", userStatsRoutes); // Mount user stats routes
+app.use("/stats/vouchers", voucherStatsRoutes); // Mount voucher stats routes
+app.use("/stats/reviews", reviewStatsRoutes); // Mount review stats routes
 
 // --- Swagger UI Setup ---
 // Serve Swagger UI at /api-docs

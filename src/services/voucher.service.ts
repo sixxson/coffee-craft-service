@@ -63,7 +63,7 @@ export const getAllVouchers = async (options: any = {}): Promise<{ data: Voucher
 
      const [vouchers, totalVouchers] = await prisma.$transaction([
         prisma.voucher.findMany(findManyArgs),
-        prisma.voucher.count({ where: findManyArgs.where }) // Add count query
+        prisma.voucher.count({ where: findManyArgs.where })
     ]);
 
     return { data: vouchers, total: totalVouchers };

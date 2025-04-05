@@ -1,7 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
 
-// Middleware factory function that takes a Joi schema
+// --- Add custom type definition ---
+// Extend Express Request type to include validatedQuery
+declare global {
+    namespace Express {
+      interface Request {
+        validatedQuery?: any; // Use 'any' for simplicity or define a more specific type if needed later
+      }
+    }
+  }
+// ---------------------------------
+
+// Middleware factory function that takes a Joi schema for request body
 export const validateRequestBody = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.body, {
@@ -29,7 +40,8 @@ export const validateRequestBody = (schema: Joi.ObjectSchema) => {
 // Optional: Middleware for validating request parameters (e.g., /:id)
 export const validateRequestParams = (schema: Joi.ObjectSchema) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        const { error } = schema.validate(req.params);
+        // Validate req.params
+        const { error, value } = schema.validate(req.params, { abortEarly: false }); // Added value and abortEarly
         if (error) {
             const errors = error.details.map((detail) => ({
                 message: detail.message,
@@ -38,6 +50,8 @@ export const validateRequestParams = (schema: Joi.ObjectSchema) => {
              res.status(400).json({ message: 'Invalid request parameters', errors });
              return; // Exit after sending error response
          }
+         // Assign validated params back (optional, but good practice)
+         req.params = value;
          next();
     };
 };
@@ -45,7 +59,9 @@ export const validateRequestParams = (schema: Joi.ObjectSchema) => {
 // Optional: Middleware for validating query parameters (e.g., ?limit=10)
 export const validateRequestQuery = (schema: Joi.ObjectSchema) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        const { error } = schema.validate(req.query);
+        // Validate req.query
+        // Use convert: true to allow Joi to coerce types (e.g., string '10' to number 10)
+        const { error, value } = schema.validate(req.query, { abortEarly: false, convert: true });
         if (error) {
              const errors = error.details.map((detail) => ({
                 message: detail.message,
@@ -54,6 +70,8 @@ export const validateRequestQuery = (schema: Joi.ObjectSchema) => {
              res.status(400).json({ message: 'Invalid query parameters', errors });
              return; // Exit after sending error response
          }
+         // *** Assign validated query params to req.validatedQuery ***
+         req.validatedQuery = value;
          next();
     };
 };

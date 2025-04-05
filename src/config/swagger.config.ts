@@ -45,7 +45,7 @@ const options: swaggerJsdoc.Options = {
   },
   // Path to the API docs files (your route files with JSDoc comments)
   // Use glob patterns to include multiple files/directories
-  apis: ['./src/routes/*.ts'], // Adjust the pattern to match your route file locations
+  apis: ['./src/routes/**/*.ts'], // Use recursive glob pattern to include subdirectories like /stats
 };
 
 const swaggerSpec = swaggerJsdoc(options);
