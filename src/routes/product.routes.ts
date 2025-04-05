@@ -239,6 +239,89 @@ const router = express.Router();
  *         # Note: images and variants are typically updated via their own endpoints
  */
 
+// --- Excel Import/Export Routes ---
+
+/**
+ * @swagger
+ * /products/export:
+ *   get:
+ *     summary: Export products to Excel
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Excel file containing product data.
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema: { type: string, format: binary }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden }
+ */
+router.get(
+  "/export",
+  /* authenticate, isStaffOrAdmin, */ productController.exportProducts
+);
+
+/**
+ * @swagger
+ * /products/import:
+ *   post:
+ *     summary: Import products from Excel file
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *       # - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Excel file (.xlsx) to import.
+ *     responses:
+ *       200:
+ *         description: Import process summary.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: integer }
+ *                 errors: { type: array, items: { type: string } }
+ *       400: { description: No file uploaded, invalid file format, or import errors }
+ *       401: { description: Unauthorized }
+ *       403: { description: Forbidden }
+ */
+const upload = multer({ storage: multer.memoryStorage() }); // Define upload middleware instance
+router.post(
+  "/import",
+  // authenticate,
+  // isStaffOrAdmin,
+  upload.single("file"),
+  productController.importProducts
+);
+
+/**
+ * @swagger
+ * /products/template:
+ *   get:
+ *     summary: Download Excel template for importing products
+ *     tags: [Products]
+ *     responses:
+ *       200:
+ *         description: Excel template file.
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema: { type: string, format: binary }
+ */
+router.get("/template", productController.downloadProductTemplate);
+
 // --- Product Image Routes (Consider nesting under /:productId/images) ---
 
 /**
@@ -295,7 +378,10 @@ router.get("/image", productController.getProductImages);
  *       403: { description: Forbidden }
  *       404: { description: Product not found }
  */
-router.post("/image", /* authenticate, isAdmin, */ productController.createProductImage);
+router.post(
+  "/image",
+  /* authenticate, isAdmin, */ productController.createProductImage
+);
 
 /**
  * @swagger
@@ -331,7 +417,10 @@ router.post("/image", /* authenticate, isAdmin, */ productController.createProdu
  *       403: { description: Forbidden }
  *       404: { description: Image or Product not found }
  */
-router.put("/image/:id", /* authenticate, isAdmin, */ productController.updateProductImage);
+router.put(
+  "/image/:id",
+  /* authenticate, isAdmin, */ productController.updateProductImage
+);
 
 /**
  * @swagger
@@ -355,8 +444,10 @@ router.put("/image/:id", /* authenticate, isAdmin, */ productController.updatePr
  *       403: { description: Forbidden }
  *       404: { description: Image not found }
  */
-router.delete("/image/:id", /* authenticate, isAdmin, */ productController.deleteProductImage);
-
+router.delete(
+  "/image/:id",
+  /* authenticate, isAdmin, */ productController.deleteProductImage
+);
 
 // --- Product CRUD Routes ---
 
@@ -546,6 +637,5 @@ router.use("/:productId/variants", productVariantRouter);
 
 // Mount the review router under /:productId/reviews (Example)
 // router.use('/:productId/reviews', reviewController.getProductReviews); // Needs reviewController import
-
 
 export default router;

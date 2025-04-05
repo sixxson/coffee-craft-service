@@ -203,7 +203,7 @@ This document outlines the available API endpoints for the Coffee Craft Service.
         -   `page`, `limit`, `sortBy`, `sortOrder` (as in Brands)
         -   `status` (string, optional, e.g., `PENDING`, `CONFIRMED`): Filter by order status.
         -   `paymentStatus` (string, optional, e.g., `PAID`, `PENDING`): Filter by payment status.
-        -   `userId` (string, optional): Filter by user ID.
+        -   `userId` (string | string[], optional): Filter by one or more user IDs (e.g., `?userId=id1&userId=id2` or `?userId=id1,id2`).
     -   **Success Response (200 OK):**
         ```json
         {
@@ -312,9 +312,12 @@ This document outlines the available API endpoints for the Coffee Craft Service.
 -   **`GET /products`**
     -   **Description:** Retrieves a paginated list of products.
     -   **Query Parameters:**
-        -   `page`, `limit`, `sortBy`, `sortOrder` (as in Brands)
-        -   `categoryId` (string, optional): Filter by category ID.
-        -   `brandId` (string, optional): Filter by brand ID.
+        -   `page` (number, optional, default: 1): Page number.
+        -   `limit` (number, optional, default: 10): Items per page.
+        -   `sortBy` (string, optional, e.g., `name`, `price`, `createdAt`): Field to sort by.
+        -   `sortOrder` (string, optional, `asc` or `desc`, default: `desc`): Sort direction.
+        -   `categoryId` (string | string[], optional): Filter by one or more category IDs (e.g., `?categoryId=id1&categoryId=id2` or `?categoryId=id1,id2`).
+        -   `brandId` (string | string[], optional): Filter by one or more brand IDs (e.g., `?brandId=id1&brandId=id2` or `?brandId=id1,id2`). Use `null` to find products without a brand.
         -   `minPrice` (number, optional): Filter by minimum price.
         -   `maxPrice` (number, optional): Filter by maximum price.
         -   *Add other filters like `tag`, `search` if implemented.*
@@ -388,6 +391,11 @@ This document outlines the available API endpoints for the Coffee Craft Service.
     -   **Requires Authentication:** Yes (Admin/Staff role likely required).
     -   **Success Response (204 No Content):** No response body.
     -   **Error Responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+### Export/Import/Template (Products)
+-   **`GET /products/export`**: Downloads an Excel file of all products (excluding variants for simplicity). Requires Auth (Admin/Staff).
+-   **`POST /products/import`**: Upload an Excel file (`multipart/form-data`, field `file`) to import products (core data + tags). Returns `{ success: number, errors: string[] }`. Requires Auth (Admin/Staff).
+-   **`GET /products/template`**: Downloads an Excel template for importing products.
 
 ---
 

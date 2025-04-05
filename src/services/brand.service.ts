@@ -1,27 +1,31 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client"; // Import Prisma
 import * as XLSX from "xlsx";
+import { parsePaginationAndSorting } from "../utils/utils"; // Import helper
 
 const prisma = new PrismaClient();
 
 // Function to get all brands
-async function getAllBrands(options: any): Promise<any[]> {
-  const {
-    page = 1,
-    limit = 10,
-    sort_by = "updatedAt",
-    order = "desc",
-  } = options;
+async function getAllBrands(options: any = {}): Promise<{ data: any[], total: number }> {
+  // Use helper for pagination and sorting, default to name ascending for brands
+  const { skip, take, orderBy } = parsePaginationAndSorting(options);
 
-  return await prisma.brand.findMany({
-    // skip: (page - 1) * limit,
-    // take: limit,
+  const findManyArgs: Prisma.BrandFindManyArgs = {
+    skip,
+    take,
     include: {
       _count: {
         select: { products: true },
       },
     },
-    orderBy: sort_by && order ? [{ [sort_by]: order }] : undefined,
-  });
+    orderBy, // Use orderBy from helper
+  };
+
+  const [brands, totalCount] = await prisma.$transaction([
+      prisma.brand.findMany(findManyArgs),
+      prisma.brand.count({ where: findManyArgs.where }) // Add count query
+  ]);
+
+  return { data: brands, total: totalCount }; // Return object with data and total
 }
 
 // Function to get a brand by ID

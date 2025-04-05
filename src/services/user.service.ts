@@ -1,7 +1,6 @@
-import { PrismaClient, User, UserRole, GENDER } from "@prisma/client"; // Added GENDER enum import
-import { hashPassword } from "../utils/utils";
+import { PrismaClient, User, UserRole, GENDER, Prisma } from "@prisma/client"; // Added GENDER enum import and Prisma
+import { hashPassword, parsePaginationAndSorting } from "../utils/utils"; // Import helpers
 import * as bCrypt from "bcrypt";
-// Removed HttpError import as it's not defined
 
 const prisma = new PrismaClient({
   log: ["error"], // Consider adding 'query', 'info', 'warn' for more detailed logging during development
@@ -15,7 +14,7 @@ export interface SafeUser {
   phone: string | null; // Added
   address: string | null; // Added
   imgUrl: string | null; // Added
-  gender: GENDER | null; // Added (Import GENDER if not already)
+  gender: GENDER | null; // Added
   dob: Date | null; // Added
   role: UserRole;
   emailVerified: boolean; // Added
@@ -40,26 +39,41 @@ interface UpdateUserData {
   role?: UserRole; // Added (Likely admin only)
 }
 
-export const getAllUsersService = async (): Promise<SafeUser[]> => {
-  const users = await prisma.user.findMany({
+export const getAllUsersService = async (
+  options: any = {}
+): Promise<{ data: SafeUser[]; total: number }> => {
+  // Update return type
+  // Use helper for pagination and sorting (defaulting to updatedAt desc)
+  const { skip, take, orderBy } = parsePaginationAndSorting(options);
+
+  const findManyArgs: Prisma.UserFindManyArgs = {
+    skip,
+    take,
     select: {
-      id: true, // Keep only one id
+      id: true,
       name: true,
       email: true,
-      phone: true, // Added
-      address: true, // Added
-      imgUrl: true, // Added
-      gender: true, // Added
-      dob: true, // Added
+      phone: true,
+      address: true,
+      imgUrl: true,
+      gender: true,
+      dob: true,
       role: true,
-      emailVerified: true, // Added
-      lastLogin: true, // Added
-      isActive: true, // Added
+      emailVerified: true,
+      lastLogin: true,
+      isActive: true,
       createdAt: true,
       updatedAt: true,
     },
-  });
-  return users;
+    orderBy,
+  };
+
+  const [users, totalCount] = await prisma.$transaction([
+    prisma.user.findMany(findManyArgs),
+    prisma.user.count({ where: findManyArgs.where }), // Add count query
+  ]);
+
+  return { data: users, total: totalCount }; // Return object with data and total
 };
 
 export const getUserByIdService = async (

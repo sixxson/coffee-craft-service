@@ -1,5 +1,6 @@
-import { PrismaClient, Voucher, VoucherType } from "@prisma/client";
+import { PrismaClient, Voucher, VoucherType, Prisma } from "@prisma/client"; // Import Prisma
 import { Decimal } from "@prisma/client/runtime/library";
+import { parsePaginationAndSorting } from "../utils/utils"; // Import helper
 
 const prisma = new PrismaClient();
 
@@ -38,28 +39,32 @@ interface UpdateVoucherData {
 
 // Function to get all vouchers with pagination
 export const getAllVouchers = async (options: any = {}): Promise<{ data: Voucher[], total: number }> => {
-    const { page = 1, limit = 10, sortBy = 'code', sortOrder = 'asc', isActive } = options;
+    const { isActive, ...otherOptions } = options;
 
-    const where: any = {};
+    // Use helper for pagination and sorting (defaulting to updatedAt desc)
+    const { skip, take, orderBy } = parsePaginationAndSorting(options);
+
+    const where: Prisma.VoucherWhereInput = {}; // Use Prisma type
     if (isActive !== undefined) {
         where.isActive = isActive === 'true' || isActive === true;
     }
 
-    const vouchers = await prisma.voucher.findMany({
+    const findManyArgs: Prisma.VoucherFindManyArgs = {
         where,
-        skip: (page - 1) * limit,
-        take: parseInt(limit),
+        skip,
+        take,
         include: {
-            _count: { select: { orders: true } }, // Count how many orders used it
+            _count: { select: { orders: true } },
             applicableCategories: { select: { id: true, name: true } },
             excludedProducts: { select: { id: true, name: true } }
         },
-        orderBy: {
-            [sortBy]: sortOrder,
-        },
-    });
+        orderBy, // Use orderBy from helper
+    };
 
-    const totalVouchers = await prisma.voucher.count({ where });
+     const [vouchers, totalVouchers] = await prisma.$transaction([
+        prisma.voucher.findMany(findManyArgs),
+        prisma.voucher.count({ where: findManyArgs.where }) // Add count query
+    ]);
 
     return { data: vouchers, total: totalVouchers };
 };

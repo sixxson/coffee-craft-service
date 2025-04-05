@@ -1,6 +1,7 @@
 // src/services/order.service.ts
-import { PrismaClient, OrderStatus, PaymentMethod, PaymentStatus, Product, ProductVariant, UserRole } from "@prisma/client"; // Added PaymentStatus, Product, ProductVariant, UserRole
+import { PrismaClient, OrderStatus, PaymentMethod, PaymentStatus, Product, ProductVariant, UserRole, Prisma } from "@prisma/client"; // Added Prisma
 import { Decimal } from "@prisma/client/runtime/library";
+import { processIdFilterInput, parsePaginationAndSorting } from "../utils/utils"; // Import helpers
 
 const prisma = new PrismaClient();
 
@@ -371,32 +372,60 @@ export const updateOrderPaymentStatus = async (orderId: string, paymentStatus: P
 };
 
 
-// Function to get ALL orders (for Admin/Staff) - Consider adding pagination/filtering
+// Function to get ALL orders (for Admin/Staff)
 export const getAllOrders = async (options: any = {}) => {
-  const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', status, paymentStatus, userId } = options;
+  const { status, paymentStatus, userId } = options;
 
-  const where: any = {};
-  if (status) where.status = status;
-  if (paymentStatus) where.paymentStatus = paymentStatus;
-  if (userId) where.userId = userId;
+  // Use helper for pagination and sorting
+  const { skip, take, orderBy } = parsePaginationAndSorting(options);
+
+  // Build the where clause dynamically
+  const where: Prisma.OrderWhereInput = {}; // Use Prisma type
+  if (status) {
+      // Ensure status is a valid OrderStatus enum value before assigning
+      if (Object.values(OrderStatus).includes(status)) {
+          where.status = status;
+      } else {
+          console.warn(`Invalid status value provided: ${status}`);
+          // Optionally throw an error or ignore the filter
+      }
+  }
+   if (paymentStatus) {
+       // Ensure paymentStatus is a valid PaymentStatus enum value
+       if (Object.values(PaymentStatus).includes(paymentStatus)) {
+           where.paymentStatus = paymentStatus;
+       } else {
+            console.warn(`Invalid paymentStatus value provided: ${paymentStatus}`);
+       }
+   }
+
+  // Use helper function for userId filter
+  const userFilter = processIdFilterInput(userId);
+  if (userFilter) {
+      where.userId = userFilter as Prisma.StringFilter; // userId is non-nullable
+  }
 
 
-  const orders = await prisma.order.findMany({
+  const findManyArgs: Prisma.OrderFindManyArgs = {
     where,
-    skip: (page - 1) * limit,
-    take: parseInt(limit),
+    skip,
+    take,
     include: {
-      user: { select: { id: true, name: true, email: true } }, // Include basic user info
-      _count: { select: { orderItems: true } } // Count items
+      user: { select: { id: true, name: true, email: true } },
+      _count: { select: { orderItems: true } }
     },
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-  });
+    orderBy, // Use orderBy from helper
+  };
 
-  const totalOrders = await prisma.order.count({ where });
+  const [orders, totalOrders] = await prisma.$transaction([
+      prisma.order.findMany(findManyArgs),
+      prisma.order.count({ where }),
+  ]);
 
-  return { data: orders, total: totalOrders, page, limit };
+  // Return pagination info along with data and total
+  const pageNumber = Number(options.page) || 1;
+  const limitNumber = Number(options.limit) || 10;
+  return { data: orders, total: totalOrders, page: pageNumber, limit: limitNumber };
 };
 
 // Function to cancel an order (by user or Staff/Admin)

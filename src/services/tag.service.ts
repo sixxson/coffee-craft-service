@@ -1,25 +1,28 @@
-import { PrismaClient, Tag } from "@prisma/client";
+import { PrismaClient, Tag, Prisma } from "@prisma/client"; // Import Prisma
+import { parsePaginationAndSorting } from "../utils/utils"; // Import helper
 
 const prisma = new PrismaClient();
 
 // Function to get all tags with pagination and product count
 export const getAllTags = async (options: any = {}): Promise<{ data: Tag[], total: number }> => {
-  const { page = 1, limit = 10, sortBy = 'name', sortOrder = 'asc' } = options;
+  // Use helper for pagination and sorting (defaulting to updatedAt desc)
+  const { skip, take, orderBy } = parsePaginationAndSorting(options);
 
-  const tags = await prisma.tag.findMany({
-    skip: (page - 1) * limit,
-    take: parseInt(limit),
+  const findManyArgs: Prisma.TagFindManyArgs = {
+    skip,
+    take,
     include: {
       _count: {
-        select: { products: true }, // Count associated products
+        select: { products: true },
       },
     },
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-  });
+    orderBy, // Use orderBy from helper
+  };
 
-  const totalTags = await prisma.tag.count();
+  const [tags, totalTags] = await prisma.$transaction([
+      prisma.tag.findMany(findManyArgs),
+      prisma.tag.count({ where: findManyArgs.where }) // Add count query
+  ]);
 
   return { data: tags, total: totalTags };
 };

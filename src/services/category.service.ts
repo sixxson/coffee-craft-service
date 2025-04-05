@@ -1,27 +1,31 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client"; // Import Prisma
 import * as XLSX from "xlsx";
+import { parsePaginationAndSorting } from "../utils/utils"; // Import helper
 
 const prisma = new PrismaClient();
 
 // Function to get all categories
-async function getAllCategories(options: any): Promise<any[]> {
-  const {
-    page = 1,
-    limit = 100,
-    sort_by = "updatedAt",
-    order = "desc",
-  } = options;
+async function getAllCategories(options: any = {}): Promise<{ data: any[], total: number }> { // Update return type
+  // Use helper for pagination and sorting (defaulting to updatedAt desc)
+  const { skip, take, orderBy } = parsePaginationAndSorting(options); // Uses default sort
 
-  return await prisma.category.findMany({
-    // skip: (page - 1) * limit,
-    // take: limit ,
+  const findManyArgs: Prisma.CategoryFindManyArgs = {
+    skip,
+    take,
     include: {
       _count: {
         select: { products: true },
       },
     },
-    orderBy: sort_by && order ? [{ [sort_by]: order }] : undefined,
-  });
+    orderBy, // Use orderBy from helper
+  };
+
+   const [categories, totalCount] = await prisma.$transaction([
+      prisma.category.findMany(findManyArgs),
+      prisma.category.count({ where: findManyArgs.where }) // Add count query
+  ]);
+
+  return { data: categories, total: totalCount }; // Return object with data and total
 }
 
 // Function to get a category by ID
