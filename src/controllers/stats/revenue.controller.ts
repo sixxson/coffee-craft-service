@@ -71,3 +71,37 @@ export const getOrderFinancials = async (req: Request, res: Response, next: Next
         next(error);
     }
 };
+
+// --- Added controller for Order Trend ---
+interface ValidatedOrderTrendQuery {
+    period?: Period;
+    startDate?: string;
+    endDate?: string;
+    groupBy: 'day' | 'month' | 'year'; // Defaulted by Joi
+}
+
+export const getOrderCreationTrend = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Use validatedQuery if validation middleware sets it, otherwise fallback to req.query
+        const queryParams = (req.validatedQuery || req.query) as ValidatedOrderTrendQuery;
+        const result = await revenueService.getOrderCreationTrend(
+            queryParams.groupBy,
+            queryParams.period,
+            queryParams.startDate,
+            queryParams.endDate
+        );
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Export controller functions
+export default {
+    getRevenueSummary,
+    getRevenueByPaymentMethod,
+    getOrdersByStatus,
+    getOrdersByPaymentStatus,
+    getOrderFinancials,
+    getOrderCreationTrend, // Add new controller function
+};

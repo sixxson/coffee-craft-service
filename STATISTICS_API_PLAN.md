@@ -122,6 +122,31 @@ These endpoints provide insights into sales performance and order processing.
 
 ---
 
+#### `GET /orders/trend`
+
+*   **Purpose:** Provides the count of orders created over time, grouped by day, month, or year, suitable for charting.
+*   **Query Parameters:**
+    *   `groupBy` (string, optional, enum: `day`, `month`, `year`, default: `day`): Time unit for grouping order counts.
+    *   `period` (string, optional, enum: `daily`, `weekly`, `monthly`, `yearly`, `custom`): Overall time window. Defaults to "Last 30 Days" logic if omitted.
+    *   `startDate` (string, optional, format: YYYY-MM-DD): Required if `period=custom`.
+    *   `endDate` (string, optional, format: YYYY-MM-DD): Required if `period=custom`.
+*   **Response Body (200 OK):**
+    ```json
+    {
+      "startDate": "YYYY-MM-DDTHH:mm:ss.sssZ", // Start of the queried range
+      "endDate": "YYYY-MM-DDTHH:mm:ss.sssZ",   // End of the queried range
+      "groupBy": "day", // or "month", "year"
+      "data": [
+        { "date": "2025-03-15", "count": 35 }, // Format depends on groupBy (YYYY-MM-DD, YYYY-MM, YYYY)
+        { "date": "2025-03-16", "count": 42 }
+        // ... more data points
+      ]
+    }
+    ```
+    *   **Logic:** Count `Order` records grouped by the date part (`day`, `month`, `year`) of `createdAt`. Filter by `createdAt` within the overall period.
+
+---
+
 ### 3.2. Product Statistics (`/stats/products`)
 
 These endpoints provide insights into product sales performance and inventory levels.
@@ -508,6 +533,7 @@ graph TD
             OrdStatus["GET /orders/by-status"]
             OrdPayStatus["GET /orders/by-payment-status"]
             OrdFin["GET /orders/financials"]
+            OrdTrend["GET /orders/trend"] %% Added %%
         end
 
         subgraph "Products (/stats/products)"

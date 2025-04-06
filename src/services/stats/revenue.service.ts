@@ -1,5 +1,6 @@
 import { PrismaClient, OrderStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
 import { getDateRangeFromPeriod, Period } from '../../utils/period.util';
+import moment from 'moment-timezone'; // Import moment
 
 const prisma = new PrismaClient();
 
@@ -204,6 +205,86 @@ export const getOrdersByPaymentStatus = async (query: PeriodQuery): Promise<Orde
     }));
 
     return finalData;
+};
+
+// --- Added types for Order Trend ---
+interface OrderTrendDataPoint {
+    date: string; // Format depends on groupBy (e.g., YYYY-MM-DD, YYYY-MM, YYYY)
+    count: number;
+}
+
+interface OrderTrendResult {
+    startDate: Date;
+    endDate: Date;
+    groupBy: 'day' | 'month' | 'year';
+    data: OrderTrendDataPoint[];
+}
+
+// Function for Order Creation Trend
+export const getOrderCreationTrend = async (
+    groupBy: 'day' | 'month' | 'year',
+    period?: Period,
+    customStartDate?: string,
+    customEndDate?: string
+): Promise<OrderTrendResult> => {
+    const { startDate, endDate } = getDateRangeFromPeriod(period, customStartDate, customEndDate);
+
+    // Fetch orders within the date range
+    const orders = await prisma.order.findMany({
+        where: {
+            createdAt: {
+                gte: startDate,
+                lte: endDate,
+            },
+            // Optional: Add status filter if needed (e.g., exclude CANCELED)
+            // status: {
+            //     not: OrderStatus.CANCELED
+            // }
+        },
+        select: {
+            createdAt: true,
+        },
+        orderBy: {
+            createdAt: 'asc',
+        }
+    });
+
+    const groupedCounts: { [key: string]: number } = {};
+
+    orders.forEach(order => {
+        let key: string;
+        const createdAtMoment = moment(order.createdAt); // Use moment for formatting
+
+        switch (groupBy) {
+            case 'month':
+                key = createdAtMoment.format('YYYY-MM');
+                break;
+            case 'year':
+                key = createdAtMoment.format('YYYY');
+                break;
+            case 'day':
+            default:
+                key = createdAtMoment.format('YYYY-MM-DD');
+                break;
+        }
+
+        groupedCounts[key] = (groupedCounts[key] || 0) + 1;
+    });
+
+    const data: OrderTrendDataPoint[] = Object.entries(groupedCounts).map(([dateKey, count]) => ({
+        date: dateKey,
+        count: count,
+    }));
+
+    // Ensure chronological order
+    data.sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+        startDate,
+        endDate,
+        groupBy,
+        data,
+    };
 };
 
 // Function for Order Financials

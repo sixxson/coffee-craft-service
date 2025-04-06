@@ -280,4 +280,60 @@ router.get('/orders/by-payment-status', validateRequestQuery(revenueValidation.g
 router.get('/orders/financials', validateRequestQuery(revenueValidation.getOrderFinancials.query), revenueController.getOrderFinancials); // Pass the .query schema
 
 
+router.get('/orders/financials', validateRequestQuery(revenueValidation.getOrderFinancials.query), revenueController.getOrderFinancials);
+
+/**
+ * @swagger
+ * /stats/revenue/orders/trend:
+ *   get:
+ *     summary: Get order creation counts over time (for charts)
+ *     tags: [Statistics - Revenue]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/periodQueryParam'
+ *       - $ref: '#/components/parameters/startDateQueryParam'
+ *       - $ref: '#/components/parameters/endDateQueryParam'
+ *       - in: query
+ *         name: groupBy
+ *         schema:
+ *           type: string
+ *           enum: [day, month, year]
+ *           default: day
+ *         description: Time unit to group order counts by.
+ *     responses:
+ *       200:
+ *         description: Order creation trend data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 startDate:
+ *                   type: string
+ *                   format: date-time
+ *                 endDate:
+ *                   type: string
+ *                   format: date-time
+ *                 groupBy:
+ *                   type: string
+ *                   enum: [day, month, year]
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         description: Date/Month/Year identifier (e.g., YYYY-MM-DD, YYYY-MM, YYYY).
+ *                       count:
+ *                         type: integer
+ */
+router.get(
+    '/orders/trend',
+    validateRequestQuery(revenueValidation.getOrderTrend.query),
+    revenueController.getOrderCreationTrend 
+);
+
+
 export default router;

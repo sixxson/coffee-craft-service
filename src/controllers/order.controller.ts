@@ -27,8 +27,8 @@ export const handleCreateOrder = asyncHandler(async (req: Request, res: Response
             shippingAddressId: validatedBody.shippingAddressId,
             paymentMethod: validatedBody.paymentMethod,
             items: validatedBody.orderItems,
-            voucherCode: validatedBody.voucherCode, // Use validated value
-            note: validatedBody.note,             // Use validated value
+            voucherCode: validatedBody.voucherCode, 
+            note: validatedBody.note,  
         };
         const createdOrder = await createOrder(orderInput);
         res.status(201).json(createdOrder);

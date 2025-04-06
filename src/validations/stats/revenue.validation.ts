@@ -46,6 +46,11 @@ const getOrderFinancials = {
   query: getRevenueSummary.query, // Reuse the same query validation
 };
 
+const getOrderTrend = {
+  query: getRevenueSummary.query.keys({ // Reuse the base period schema
+    groupBy: Joi.string().valid('day', 'month', 'year').optional().default('day'),
+  }),
+};
 
 export default {
   getRevenueSummary,
@@ -53,4 +58,5 @@ export default {
   getOrdersByStatus,
   getOrdersByPaymentStatus,
   getOrderFinancials,
+  getOrderTrend, // Add the new schema
 };

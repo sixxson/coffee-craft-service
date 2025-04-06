@@ -101,7 +101,7 @@ router.use(authenticate, isStaffOrAdmin);
  */
 router.get(
     '/top-selling',
-    validateRequestQuery(productValidation.getTopSellingProducts.query), // Use the query schema
+    validateRequestQuery(productValidation.getTopSellingProducts.query),
     productController.getTopSellingProducts
 );
 
@@ -167,7 +167,7 @@ router.get(
  */
 router.get(
     '/performance',
-    validateRequestQuery(productValidation.getProductPerformance.query), // Use correct validation
+    validateRequestQuery(productValidation.getProductPerformance.query),
     productController.getProductPerformance
 );
 
@@ -250,7 +250,7 @@ router.get(
  */
 router.get(
     '/inventory',
-    validateRequestQuery(productValidation.getProductInventory.query), // Use correct validation
+    validateRequestQuery(productValidation.getProductInventory.query),
     productController.getProductInventory
 );
 
@@ -320,7 +320,7 @@ router.get(
  */
 router.get(
     '/variants/performance', // Route path as per plan
-    validateRequestQuery(productValidation.getProductVariantPerformance.query), // Use correct validation
+    validateRequestQuery(productValidation.getProductVariantPerformance.query),
     productController.getProductVariantPerformance
 );
 
