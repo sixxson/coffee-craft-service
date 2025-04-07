@@ -71,6 +71,7 @@ model User {
   blogs             Blog[]
   reviews           Review[]
   shippingAddresses ShippingAddress[]
+  orderHistoryEntries OrderHistory[] // Relation to order history entries made by this user
 }
 
 model ShippingAddress {
@@ -210,6 +211,7 @@ model Order {
   voucher         Voucher?        @relation(fields: [voucherId], references: [id], onDelete: SetNull)
   shippingAddress ShippingAddress @relation(fields: [shippingAddressId], references: [id], onDelete: Restrict)
   orderItems      OrderItem[]
+  history         OrderHistory[] // Relation to the history table
 }
 
 model OrderItem {
@@ -293,4 +295,20 @@ model Review {
   @@index([userId])
   @@index([productId])
   @@index([productVariantId])
+}
+model OrderHistory {
+  id        String   @id @default(uuid())
+  orderId   String   // Foreign key to the Order
+  userId    String?  // Foreign key to the User who made the change (nullable if system change?)
+  timestamp DateTime @default(now()) // When the change occurred
+  field     String?  // Which field changed (e.g., 'status', 'note', 'shippingAddressId') - Made optional
+  oldValue  String?  // The value before the change (optional, stored as string)
+  newValue  String?  // The value after the change (stored as string)
+  action    String   // Type of action (e.g., 'UPDATE_STATUS', 'UPDATE_NOTE', 'CREATE_ORDER')
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull) // User might be deleted
+
+  @@index([orderId])
+  @@index([userId])
 }

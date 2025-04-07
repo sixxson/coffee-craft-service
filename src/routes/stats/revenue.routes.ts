@@ -280,7 +280,7 @@ router.get('/orders/by-payment-status', validateRequestQuery(revenueValidation.g
 router.get('/orders/financials', validateRequestQuery(revenueValidation.getOrderFinancials.query), revenueController.getOrderFinancials); // Pass the .query schema
 
 
-router.get('/orders/financials', validateRequestQuery(revenueValidation.getOrderFinancials.query), revenueController.getOrderFinancials);
+// Removed duplicate route definition for /orders/financials
 
 /**
  * @swagger
@@ -328,6 +328,10 @@ router.get('/orders/financials', validateRequestQuery(revenueValidation.getOrder
  *                         description: Date/Month/Year identifier (e.g., YYYY-MM-DD, YYYY-MM, YYYY).
  *                       count:
  *                         type: integer
+ *                       totalRevenue:
+ *                         type: number
+ *                         format: double
+ *                         description: Total finalTotal of orders created in this period.
  */
 router.get(
     '/orders/trend',

@@ -137,8 +137,8 @@ These endpoints provide insights into sales performance and order processing.
       "endDate": "YYYY-MM-DDTHH:mm:ss.sssZ",   // End of the queried range
       "groupBy": "day", // or "month", "year"
       "data": [
-        { "date": "2025-03-15", "count": 35 }, // Format depends on groupBy (YYYY-MM-DD, YYYY-MM, YYYY)
-        { "date": "2025-03-16", "count": 42 }
+        { "date": "2025-03-15", "count": 35, "totalRevenue": 10500000.00 }, // Format depends on groupBy (YYYY-MM-DD, YYYY-MM, YYYY)
+        { "date": "2025-03-16", "count": 42, "totalRevenue": 12345000.50 }
         // ... more data points
       ]
     }

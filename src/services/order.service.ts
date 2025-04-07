@@ -5,6 +5,35 @@ import { processIdFilterInput, parsePaginationAndSorting } from "../utils/utils"
 
 const prisma = new PrismaClient();
 
+// --- Helper Function for Order History Logging ---
+const logOrderHistory = async (
+    tx: Prisma.TransactionClient, // Use the transaction client
+    orderId: string,
+    actorUserId: string | null, // User performing the action (null for system?)
+    action: string, // e.g., 'CREATE_ORDER', 'UPDATE_STATUS', 'CANCEL_ORDER'
+    field?: string, // Optional: Field that changed
+    oldValue?: any, // Optional: Value before change
+    newValue?: any // Optional: Value after change
+) => {
+    // Convert values to string for storage, handle null/undefined
+    const formatValue = (value: any): string | null => {
+        if (value === null || typeof value === 'undefined') return null;
+        if (typeof value === 'object') return JSON.stringify(value); // Basic object stringify
+        return String(value);
+    };
+
+    await tx.orderHistory.create({
+        data: {
+            orderId,
+            userId: actorUserId, // Link to the user who made the change
+            action,
+            field: field || undefined, // Store field name if provided
+            oldValue: formatValue(oldValue),
+            newValue: formatValue(newValue),
+        },
+    });
+};
+
 interface OrderItemInput {
   productId: string;
   productVariantId?: string; // Added optional variant ID
@@ -217,6 +246,17 @@ export const createOrder = async (input: CreateOrderInput) => {
     // 4. Execute stock updates
     await Promise.all(stockUpdates);
 
+    // Log the creation action
+    // Note: For creation, oldValue is typically null or not applicable
+    await logOrderHistory(
+        tx,
+        newOrder.id,
+        userId, // The user placing the order is the actor
+        'CREATE_ORDER'
+        // Optionally log initial status/paymentStatus if desired
+        // field: 'status', newValue: newOrder.status
+    );
+
     return newOrder;
   });
 };
@@ -313,15 +353,18 @@ export const getOrderById = async (orderId: string, userId?: string) => {
 };
 
 // Function to update order status (typically by Staff/Admin)
-export const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
+export const updateOrderStatus = async (orderId: string, status: OrderStatus, actorUserId: string) => { // Added actorUserId
   // Validate status value
   if (!Object.values(OrderStatus).includes(status)) {
     throw new Error(`Invalid order status: ${status}`);
   }
 
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-  });
+  // Use transaction for consistency
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({ // Use tx client
+        where: { id: orderId },
+        select: { status: true } // Select only the old status
+    });
 
   if (!order) {
     throw new Error(`Order with ID ${orderId} not found.`);
@@ -337,21 +380,40 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus) =>
 
   // Add logic for specific transitions if needed (e.g., payment required before shipping)
 
-  return prisma.order.update({
-    where: { id: orderId },
-    data: { status },
+    const oldStatus = order.status; // Capture old status
+
+    const updatedOrder = await tx.order.update({ // Use tx client
+        where: { id: orderId },
+        data: { status },
+    });
+
+    // Log the history change
+    await logOrderHistory(
+        tx,
+        orderId,
+        actorUserId,
+        'UPDATE_STATUS',
+        'status',
+        oldStatus,
+        status
+    );
+
+    return updatedOrder;
   });
 };
 
 // Function to update order payment status (e.g., after webhook callback)
-export const updateOrderPaymentStatus = async (orderId: string, paymentStatus: PaymentStatus, transactionId?: string) => {
+export const updateOrderPaymentStatus = async (orderId: string, paymentStatus: PaymentStatus, actorUserId: string, transactionId?: string) => { // Added actorUserId
    if (!Object.values(PaymentStatus).includes(paymentStatus)) {
     throw new Error(`Invalid payment status: ${paymentStatus}`);
   }
 
-   const order = await prisma.order.findUnique({
-    where: { id: orderId },
-  });
+   // Use transaction for consistency
+   return prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({ // Use tx client
+            where: { id: orderId },
+            select: { paymentStatus: true, transactionId: true } // Select old values
+        });
 
    if (!order) {
     throw new Error(`Order with ID ${orderId} not found.`);
@@ -362,13 +424,44 @@ export const updateOrderPaymentStatus = async (orderId: string, paymentStatus: P
    //   throw new Error(`Order payment status is already ${order.paymentStatus}.`);
    // }
 
-   return prisma.order.update({
-    where: { id: orderId },
-    data: {
-        paymentStatus,
-        transactionId: transactionId ?? order.transactionId, // Keep existing if not provided
-     },
-  });
+        const oldPaymentStatus = order.paymentStatus;
+        const oldTransactionId = order.transactionId;
+        const newTransactionId = transactionId ?? oldTransactionId; // Determine new transaction ID
+
+        const updatedOrder = await tx.order.update({ // Use tx client
+            where: { id: orderId },
+            data: {
+                paymentStatus,
+                transactionId: newTransactionId,
+            },
+        });
+
+        // Log payment status change
+        await logOrderHistory(
+            tx,
+            orderId,
+            actorUserId,
+            'UPDATE_PAYMENT_STATUS',
+            'paymentStatus',
+            oldPaymentStatus,
+            paymentStatus
+        );
+
+        // Log transaction ID change if it actually changed
+        if (newTransactionId !== oldTransactionId) {
+             await logOrderHistory(
+                tx,
+                orderId,
+                actorUserId,
+                'UPDATE_TRANSACTION_ID',
+                'transactionId',
+                oldTransactionId,
+                newTransactionId
+            );
+        }
+
+        return updatedOrder;
+   });
 };
 
 
@@ -428,8 +521,25 @@ export const getAllOrders = async (options: any = {}) => {
   return { data: orders, total: totalOrders, page: pageNumber, limit: limitNumber };
 };
 
+// --- Added function to get order history ---
+export const getOrderHistory = async (orderId: string) => {
+    // Fetch history entries for the given order, ordered by timestamp
+    return prisma.orderHistory.findMany({
+        where: { orderId },
+        include: {
+            // Include user details (optional, but useful)
+            user: {
+                select: { id: true, name: true, email: true, role: true }
+            }
+        },
+        orderBy: {
+            timestamp: 'desc', // Show most recent changes first
+        },
+    });
+};
+
 // Function to cancel an order (by user or Staff/Admin)
-export const cancelOrder = async (orderId: string, userId: string, userRole: UserRole) => { // Use UserRole enum
+export const cancelOrder = async (orderId: string, userId: string, userRole: UserRole, actorUserId: string) => { // Added actorUserId
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id: orderId },
@@ -485,6 +595,17 @@ export const cancelOrder = async (orderId: string, userId: string, userRole: Use
       }
     });
     await Promise.all(stockRestores);
+
+    // Log the cancellation action
+    await logOrderHistory(
+        tx,
+        orderId,
+        actorUserId, // The user performing the cancellation
+        'CANCEL_ORDER',
+        'status', // Field changed is status
+        order.status, // Old status
+        OrderStatus.CANCELED // New status
+    );
 
     // Optional: Handle voucher restoration if applicable (e.g., increment usedCount back)
     if (order.voucherId) {

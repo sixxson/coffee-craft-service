@@ -33,9 +33,9 @@ export const register = async (req: Request, res: Response) => {
     password,
     name = "",
     role = "CUSTOMER",
-    phone = "",
-    address = "",
-    gender = "",
+    phone = undefined,
+    address = undefined,
+    gender = undefined,
   } = req.body;
 
   // Check if email already exists

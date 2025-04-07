@@ -8,6 +8,8 @@ import {
   handleUpdateOrderStatus,
   handleCancelOrder,
   handleGetAllOrders, // Import the new handler
+  handleGetOrderHistory, // Import the history handler
+  handleUpdateOrderPaymentStatus // Import payment status handler
 } from "../controllers/order.controller";
 import { authenticate, isStaffOrAdmin } from "../middlewares/auth.middleware";
 import { validateRequestBody } from "../middlewares/validation.middleware";
@@ -350,6 +352,72 @@ router.get("/:id", handleGetOrderById);
 
 /**
  * @swagger
+ * /orders/{id}/history:
+ *   get:
+ *     summary: Retrieve the change history for a specific order
+ *     tags: [Orders]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the order to retrieve history for
+ *     responses:
+ *       200:
+ *         description: Order history details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object # Define OrderHistory schema if needed in components
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   orderId:
+ *                     type: string
+ *                     format: uuid
+ *                   userId:
+ *                     type: string
+ *                     format: uuid
+ *                     nullable: true
+ *                   timestamp:
+ *                     type: string
+ *                     format: date-time
+ *                   field:
+ *                     type: string
+ *                     nullable: true
+ *                   oldValue:
+ *                     type: string
+ *                     nullable: true
+ *                   newValue:
+ *                     type: string
+ *                     nullable: true
+ *                   action:
+ *                     type: string
+ *                   user: # Included user details
+ *                      type: object
+ *                      properties:
+ *                          id: { type: string, format: uuid }
+ *                          name: { type: string, nullable: true }
+ *                          email: { type: string, format: email }
+ *                          role: { type: string } # Define UserRole enum if needed
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (User does not own order and is not Admin/Staff)
+ *       404:
+ *         description: Order not found
+ */
+router.get("/:id/history", handleGetOrderHistory); // Added history route
+
+/**
+ * @swagger
  * /orders/{id}/status:
  *   put:
  *     summary: Update the status of an order (Admin/Staff only)
@@ -397,6 +465,59 @@ router.put(
   isStaffOrAdmin,
   validateRequestBody(updateOrderStatusSchema),
   handleUpdateOrderStatus
+);
+
+/**
+ * @swagger
+ * /orders/{id}/payment-status:
+ *   put:
+ *     summary: Update the payment status of an order (Admin/Staff only)
+ *     tags: [Orders]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the order to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - paymentStatus
+ *             properties:
+ *               paymentStatus:
+ *                 $ref: '#/components/schemas/PaymentStatus'
+ *               transactionId:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Order payment status updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Invalid status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Order not found
+ */
+router.put(
+  "/:id/payment-status",
+  isStaffOrAdmin, // Apply Staff/Admin check for manual updates
+  validateRequestBody(updateOrderPaymentStatusSchema), // Use correct validation schema
+  handleUpdateOrderPaymentStatus // Link to the controller handler
 );
 
 /**

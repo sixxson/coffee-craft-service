@@ -234,7 +234,7 @@ This document outlines the available API endpoints for the Coffee Craft Service.
 
 ### Create Order
 -   **`POST /orders`**
-    -   **Description:** Creates a new order for the authenticated user. Calculates totals, applies voucher, decrements stock.
+    -   **Description:** Creates a new order for the authenticated user. Calculates totals, applies voucher, decrements stock. Logs creation to history.
     -   **Requires Authentication:** Yes.
     -   **Request Body:**
         ```json
@@ -266,14 +266,14 @@ This document outlines the available API endpoints for the Coffee Craft Service.
 
 ### Get Order by ID
 -   **`GET /orders/:id`**
-    -   **Description:** Retrieves a specific order. User must own the order or be Staff/Admin.
+    -   **Description:** Retrieves a specific order. User must own the order or be Staff/Admin. Does *not* include history by default.
     -   **Requires Authentication:** Yes.
     -   **Success Response (200 OK):** Returns the detailed order object including items, user, address, voucher info.
     -   **Error Responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
 
 ### Update Order Status
 -   **`PUT /orders/:id/status`**
-    -   **Description:** Updates the processing status of an order (e.g., PENDING -> CONFIRMED -> SHIPPED -> DELIVERED).
+    -   **Description:** Updates the processing status of an order (e.g., PENDING -> CONFIRMED -> SHIPPED -> DELIVERED). Logs change to history.
     -   **Requires Authentication:** Yes (Staff or Admin role).
     -   **Request Body:**
         ```json
@@ -284,7 +284,7 @@ This document outlines the available API endpoints for the Coffee Craft Service.
 
 ### Update Order Payment Status
 -   **`PUT /orders/:id/payment-status`**
-    -   **Description:** Updates the payment status of an order. Often used by payment gateway callbacks or manually by admins.
+    -   **Description:** Updates the payment status of an order. Often used by payment gateway callbacks or manually by admins. Logs change to history.
     -   **Requires Authentication:** Yes (Staff or Admin role - *adjust if used by unauthenticated callback*).
     -   **Request Body:**
         ```json
@@ -299,10 +299,38 @@ This document outlines the available API endpoints for the Coffee Craft Service.
 
 ### Cancel Order
 -   **`PUT /orders/:id/cancel`**
-    -   **Description:** Cancels an order (if status allows). Restocks items and potentially reverts voucher usage.
+    -   **Description:** Cancels an order (if status allows). Restocks items and potentially reverts voucher usage. Logs cancellation to history.
     -   **Requires Authentication:** Yes (Order owner or Staff/Admin role).
     -   **Success Response (200 OK):** Returns the updated (canceled) order object.
     -   **Error Responses:** `400 Bad Request` (Order cannot be canceled), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
+
+### Get Order History
+-   **`GET /orders/:id/history`**
+    -   **Description:** Retrieves the change history for a specific order. User must own the order or be Staff/Admin.
+    -   **Requires Authentication:** Yes.
+    -   **Success Response (200 OK):** Returns an array of history event objects, ordered most recent first.
+        ```json
+        [
+          {
+            "id": "uuid",
+            "orderId": "uuid",
+            "userId": "uuid (or null)",
+            "timestamp": "timestamp",
+            "field": "status (or null)",
+            "oldValue": "PENDING (or null)",
+            "newValue": "CONFIRMED (or null)",
+            "action": "UPDATE_STATUS (or CREATE_ORDER, CANCEL_ORDER, etc.)",
+            "user": { // User who performed the action
+              "id": "uuid",
+              "name": "Admin User",
+              "email": "admin@example.com",
+              "role": "ADMIN"
+            }
+          }
+          // ... more history events
+        ]
+        ```
+    -   **Error Responses:** `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`.
 
 ---
 

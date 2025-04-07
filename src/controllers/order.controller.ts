@@ -7,9 +7,11 @@ import {
     getOrderById,
     updateOrderStatus,
     cancelOrder,
-    getAllOrders // Import the new service function
+    getAllOrders, // Import the new service function
+    getOrderHistory, // Import the history service function
+    updateOrderPaymentStatus // Import the payment status update service function
 } from '../services/order.service';
-import { PaymentMethod, OrderStatus, User, UserRole } from '@prisma/client'; // Import enums
+import { PaymentMethod, OrderStatus, User, UserRole, PaymentStatus } from '@prisma/client'; // Import enums (Added PaymentStatus)
 
 
 // @desc    Create new order
@@ -27,8 +29,8 @@ export const handleCreateOrder = asyncHandler(async (req: Request, res: Response
             shippingAddressId: validatedBody.shippingAddressId,
             paymentMethod: validatedBody.paymentMethod,
             items: validatedBody.orderItems,
-            voucherCode: validatedBody.voucherCode, 
-            note: validatedBody.note,  
+            voucherCode: validatedBody.voucherCode,
+            note: validatedBody.note,
         };
         const createdOrder = await createOrder(orderInput);
         res.status(201).json(createdOrder);
@@ -89,11 +91,53 @@ export const handleUpdateOrderStatus = asyncHandler(async (req: Request, res: Re
     const { status } = req.body;
 
     try {
-        const updatedOrder = await updateOrderStatus(orderId, status);
+        const actorUserId = req.user.id; // Get ID of user performing the action
+        const updatedOrder = await updateOrderStatus(orderId, status, actorUserId); // Pass actorUserId
         res.status(200).json(updatedOrder);
     } catch (error: any) {
         res.status(400); // Or 404 if order not found
         throw new Error(error.message || 'Failed to update order status');
+    }
+});
+
+// @desc    Get order history by ID
+// @route   GET /api/orders/:id/history
+// @access  Private (Owner or Staff/Admin)
+export const handleGetOrderHistory = asyncHandler(async (req: Request, res: Response) => {
+    const orderId = req.params.id;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    try {
+        // First, verify the user has access to the order itself
+        await getOrderById(orderId, ['ADMIN', 'STAFF'].includes(userRole || '') ? undefined : userId);
+
+        // If access is verified, fetch the history
+        const history = await getOrderHistory(orderId);
+        res.status(200).json(history);
+    } catch (error: any) {
+        // Handle cases where the order doesn't exist or user lacks access
+        res.status(404);
+        throw new Error(error.message || 'Order not found or access denied');
+    }
+});
+
+// @desc    Update order payment status (Manual by Admin/Staff)
+// @route   PUT /api/orders/:id/payment-status
+// @access  Private (Staff/Admin)
+export const handleUpdateOrderPaymentStatus = asyncHandler(async (req: Request, res: Response) => {
+    const orderId = req.params.id;
+    // Validation is handled by the validateRequestBody middleware
+    // req.body contains validated data: { paymentStatus, transactionId? }
+    const { paymentStatus, transactionId } = req.body as { paymentStatus: PaymentStatus, transactionId?: string };
+    const actorUserId = req.user.id; // Guaranteed by authenticate middleware
+
+    try {
+        const updatedOrder = await updateOrderPaymentStatus(orderId, paymentStatus, actorUserId, transactionId);
+        res.status(200).json(updatedOrder);
+    } catch (error: any) {
+        res.status(400); // Or 404 if order not found
+        throw new Error(error.message || 'Failed to update order payment status');
     }
 });
 
@@ -112,10 +156,23 @@ export const handleCancelOrder = asyncHandler(async (req: Request, res: Response
     }
 
     try {
-        const canceledOrder = await cancelOrder(orderId, userId, userRole);
+        const actorUserId = req.user.id; // Get ID of user performing the action (could be owner or admin/staff)
+        const canceledOrder = await cancelOrder(orderId, userId, userRole, actorUserId); // Pass actorUserId
         res.status(200).json(canceledOrder);
     } catch (error: any) {
         res.status(400); // Or 403 for auth error, 404 for not found
         throw new Error(error.message || 'Failed to cancel order');
     }
 });
+
+// Export all handlers
+export default {
+    handleCreateOrder,
+    handleGetAllOrders,
+    handleGetMyOrders,
+    handleGetOrderById,
+    handleUpdateOrderStatus,
+    handleCancelOrder,
+    handleGetOrderHistory,
+    handleUpdateOrderPaymentStatus
+};

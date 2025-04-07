@@ -1,6 +1,7 @@
 import { PrismaClient, OrderStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
 import { getDateRangeFromPeriod, Period } from '../../utils/period.util';
 import moment from 'moment-timezone'; // Import moment
+import { Decimal } from '@prisma/client/runtime/library'; // Import Decimal
 
 const prisma = new PrismaClient();
 
@@ -207,10 +208,11 @@ export const getOrdersByPaymentStatus = async (query: PeriodQuery): Promise<Orde
     return finalData;
 };
 
-// --- Added types for Order Trend ---
+// --- Updated types for Order Trend ---
 interface OrderTrendDataPoint {
     date: string; // Format depends on groupBy (e.g., YYYY-MM-DD, YYYY-MM, YYYY)
     count: number;
+    totalRevenue: Decimal; // Added total revenue
 }
 
 interface OrderTrendResult {
@@ -243,13 +245,14 @@ export const getOrderCreationTrend = async (
         },
         select: {
             createdAt: true,
+            finalTotal: true, // Select finalTotal as well
         },
         orderBy: {
             createdAt: 'asc',
         }
     });
 
-    const groupedCounts: { [key: string]: number } = {};
+    const groupedData: { [key: string]: { count: number; totalRevenue: Decimal } } = {};
 
     orders.forEach(order => {
         let key: string;
@@ -268,12 +271,17 @@ export const getOrderCreationTrend = async (
                 break;
         }
 
-        groupedCounts[key] = (groupedCounts[key] || 0) + 1;
+        if (!groupedData[key]) {
+            groupedData[key] = { count: 0, totalRevenue: new Decimal(0) };
+        }
+        groupedData[key].count += 1;
+        groupedData[key].totalRevenue = groupedData[key].totalRevenue.add(order.finalTotal);
     });
 
-    const data: OrderTrendDataPoint[] = Object.entries(groupedCounts).map(([dateKey, count]) => ({
+    const data: OrderTrendDataPoint[] = Object.entries(groupedData).map(([dateKey, values]) => ({
         date: dateKey,
-        count: count,
+        count: values.count,
+        totalRevenue: values.totalRevenue, // Include totalRevenue
     }));
 
     // Ensure chronological order
