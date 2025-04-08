@@ -10,7 +10,7 @@ import {
     getAllOrders, // Import the new service function
     getOrderHistory, // Import the history service function
     updateOrderPaymentStatus // Import the payment status update service function
-} from '../services/order.service';
+} from '../services/order.service'; // Removed .tsx extension
 import { PaymentMethod, OrderStatus, User, UserRole, PaymentStatus } from '@prisma/client'; // Import enums (Added PaymentStatus)
 
 
@@ -28,7 +28,7 @@ export const handleCreateOrder = asyncHandler(async (req: Request, res: Response
             userId,
             shippingAddressId: validatedBody.shippingAddressId,
             paymentMethod: validatedBody.paymentMethod,
-            items: validatedBody.orderItems,
+            items: validatedBody.orderItems, // Ensure this matches validation schema output
             voucherCode: validatedBody.voucherCode,
             note: validatedBody.note,
         };

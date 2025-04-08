@@ -32,7 +32,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: [ process.env.CORS_ORIGIN || "*" , "http://localhost:3000"],
+    origin: [ process.env.CORS_ORIGIN || "*", "https://coffee-craft.vercel.app/" , "http://localhost:3000"],
     credentials: true, // Allow cookies to be sent with requests
   })
 );
