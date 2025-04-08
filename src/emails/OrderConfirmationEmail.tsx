@@ -29,7 +29,8 @@ interface OrderConfirmationEmailProps {
 }
 
 // --- Base URL Configuration ---
-const baseUrl = process.env.STORE_URL || "http://localhost:3000";
+const baseUrl = process.env.STORE_URL || "http://localhost:3000"; // Backend/API URL
+const frontendBaseUrl = "https://coffee-craft.vercel.app"; // Your Vercel frontend URL
 const defaultStoreName = "Coffee Craft";
 const defaultProductImageUrl = `${baseUrl}/static/product-placeholder.png`; // Ensure this is publicly accessible
 
@@ -60,7 +61,7 @@ export const OrderConfirmationEmail = ({
     new Decimal(0)
   );
 
-  const viewOrderUrl = `${storeUrl}/orders/${order.id}`;
+  const viewOrderUrl = `${storeUrl}/orders/${order.id}`; // Link to backend/API order? Or frontend? Adjust as needed.
 
   return (
     <Html>
@@ -148,42 +149,48 @@ export const OrderConfirmationEmail = ({
               </Column>
             </Row>
 
-            {order.orderItems.map((item: OrderItemWithProduct) => (
-              <Row key={item.id} style={itemRow}>
-                {/* Increased image column width */}
-                <Column width="160" style={itemImageColumn}>
-                  <Img
-                    src={
-                      item.product.images?.[0]?.url || defaultProductImageUrl
-                    }
-                    width="200" // Increased image size
-                    height="200" // Increased image size
-                    alt={item.product.name}
-                    style={productImage}
-                  />
-                </Column>
-                <Column style={itemDetailsColumn}>
-                  <Text style={itemText}>
-                    {item.product.name}{" "}
-                    {item.productVariant ? `(${item.productVariant.name})` : ""}
-                  </Text>
-                  <Text style={itemPrice}>
-                    {formatCurrency(item.priceAtOrder.mul(item.quantity))}
-                  </Text>
-                  <Text style={itemQuantity}>SL: {item.quantity}</Text>
-                </Column>
-              </Row>
-            ))}
+            {order.orderItems.map((item: OrderItemWithProduct) => {
+              // Construct product URL
+              const productUrl = `${frontendBaseUrl}/product/${item.productId}`;
+              return (
+                <Row key={item.id} style={itemRow}>
+                  <Column width="160" style={itemImageColumn}>
+                    <Link href={productUrl} target="_blank"> {/* Link added */}
+                      <Img
+                        src={
+                          item.product.images?.[0]?.url || defaultProductImageUrl
+                        }
+                        width="150"
+                        height="150"
+                        alt={item.product.name}
+                        style={productImage}
+                      />
+                    </Link>
+                  </Column>
+                  <Column style={itemDetailsColumn}>
+                    <Link href={productUrl} target="_blank" style={productLink}> {/* Link added */}
+                      <Text style={itemText}>
+                        {item.product.name}{" "}
+                        {item.productVariant ? `(${item.productVariant.name})` : ""}
+                      </Text>
+                    </Link>
+                    <Text style={itemPrice}> {/* Moved price below name */}
+                      {formatCurrency(item.priceAtOrder.mul(item.quantity))}
+                    </Text>
+                    <Text style={itemQuantity}>SL: {item.quantity}</Text>
+                  </Column>
+                  {/* Price column removed as price is now under details */}
+                </Row>
+              );
+            })}
           </Section>
 
-          {/* <Hr style={hr} /> */}
+          {/* <Hr style={hr} /> */} {/* Removed extra HR */}
 
           {/* Totals Section */}
           <Section style={contentSection}>
             <Row style={totalsRow}>
-              <Column>
-                <Text style={totalsLabel}>Thành tiền:</Text>
-              </Column>
+              <Column style={totalsLabel}>Thành tiền:</Column>
               <Column style={totalsValueColumn}>
                 <Text style={totalsValue}>{formatCurrency(subtotal)}</Text>
               </Column>
@@ -298,7 +305,7 @@ export const OrderConfirmationEmail = ({
                 href={`mailto:support@${storeUrl.replace(/https?:\/\//, "")}`}
                 style={link}
               >
-                support@coffeecraft.com
+                support@coffeecraft.com {/* Replace with your actual support email */}
               </Link>
               .
             </Text>
@@ -330,41 +337,42 @@ const container = {
 };
 
 const headerSection = {
-  padding: "20px",
-  borderBottom: "1px solid #e6e6e6",
+    padding: "20px",
+    borderBottom: "1px solid #e6e6e6",
 };
 
 const logoText = {
-  fontSize: "28px",
-  fontWeight: "bold",
-  textAlign: "center" as const,
-  margin: "0",
-  padding: "10px 0",
+    fontSize: "28px",
+    fontWeight: "bold",
+    textAlign: "center" as const,
+    margin: "0",
+    padding: "10px 0",
 };
 const logoCoffee = {
-  color: "#1a1a1a",
+    color: "#1a1a1a",
 };
 const logoCraft = {
-  color: "#f5a623",
+    color: "#f5a623",
 };
 
+
 const contentSection = {
-  padding: "20px 30px",
+    padding: "20px 30px",
 };
 
 const addressSectionStyle = {
-  padding: "10px 30px",
+    padding: "10px 30px",
 };
 
 const itemsSectionStyle = {
-  padding: "10px 30px",
+    padding: "10px 30px",
 };
 
 const iconColumn = {
-  width: "32px",
-  verticalAlign: "top" as const,
-  // paddingTop: '3px',
-  fontSize: "20px",
+    width: "32px",
+    verticalAlign: "top" as const,
+    paddingTop: "3px",
+    fontSize: "20px",
 };
 
 const mainHeading = {
@@ -383,13 +391,13 @@ const paragraph = {
 };
 
 const buttonContainer = {
-  textAlign: "center" as const,
-  margin: "25px 0",
+    textAlign: "center" as const,
+    margin: "25px 0",
 };
 
 const statusButton = {
-  backgroundColor: "#f5a623",
-  backgroundImage: "linear-gradient(to right,rgb(0, 0, 0), #f5a623)",
+  backgroundColor: "#f5a623", // Updated button color
+  // backgroundImage: "linear-gradient(to right,rgb(0, 0, 0), #f5a623)", // Removed gradient for better compatibility
   borderRadius: "4px",
   color: "#ffffff",
   fontSize: "16px",
@@ -402,10 +410,10 @@ const statusButton = {
 };
 
 const noteText = {
-  fontSize: "12px",
-  color: "#555555",
-  lineHeight: "18px",
-  marginTop: "25px",
+    fontSize: "12px",
+    color: "#555555",
+    lineHeight: "18px",
+    marginTop: "25px",
 };
 
 const hr = {
@@ -414,149 +422,156 @@ const hr = {
 };
 
 const sectionTitle = {
-  fontSize: "16px",
-  fontWeight: "bold",
-  color: "#333333",
-  margin: "5px 0 10px 0",
+    fontSize: "16px",
+    fontWeight: "bold",
+    color: "#333333",
+    margin: "5px 0 10px 0",
 };
 
 // Styles for aligned address
 const addressRow = {
-  marginBottom: "4px",
+    marginBottom: "4px",
 };
 const addressLabelColumn = {
-  width: "95px",
-  paddingRight: "10px",
-  fontSize: "14px",
-  color: "#555555",
-  verticalAlign: "top" as const,
+    width: "95px",
+    paddingRight: "10px",
+    fontSize: "14px",
+    color: "#555555",
+    verticalAlign: "top" as const,
 };
 const addressValueColumn = {
-  fontSize: "14px",
-  color: "#333333",
-  verticalAlign: "top" as const,
+    fontSize: "14px",
+    color: "#333333",
+    verticalAlign: "top" as const,
 };
 
+
 const itemRow = {
-  padding: "15px 0",
-  borderBottom: "1px solid #e6e6e6",
+    padding: "15px 0",
+    borderBottom: "1px solid #e6e6e6",
 };
 
 const itemImageColumn = {
-  verticalAlign: "top" as const,
-  width: "160px", // Adjusted width for larger image + padding
+    verticalAlign: "top" as const,
+    width: "160px",
 };
 
 const itemDetailsColumn = {
-  paddingLeft: "15px",
-  verticalAlign: "top" as const,
+    paddingLeft: "15px",
+    verticalAlign: "top" as const,
 };
 
 const itemText = {
-  fontSize: "14px",
-  lineHeight: "20px",
-  color: "#333",
-  margin: "0 0 4px 0",
+    fontSize: "14px",
+    lineHeight: "20px",
+    color: "#333",
+    margin: "0 0 4px 0",
 };
 
 const itemQuantity = {
-  fontSize: "14px",
-  color: "#585858",
-  margin: 0,
+    fontSize: "14px", // Slightly larger quantity text
+    color: "#585858",
+    margin: 0,
 };
 
-const itemPriceColumn = {
-  width: "120px",
-  verticalAlign: "top" as const,
+const itemPriceColumn = { // Removed this column as price is now under details
+    // width: "120px",
+    // verticalAlign: "top" as const,
 };
 
-const itemPrice = {
-  fontSize: "14px",
-  color: "#f5a623",
-  margin: 0,
+const itemPrice = { // Style for price text under details
+    fontSize: "14px",
+    color: "#f5a623", // Use accent color for price
+    margin: '4px 0 0 0', // Add margin above price
+    fontWeight: 'bold',
 };
 
 const productImage = {
-  borderRadius: "4px",
-  objectFit: "cover" as const,
-  width: "150px", // Increased size
-  height: "150px", // Increased size
+    borderRadius: "4px",
+    objectFit: "cover" as const,
+    width: "150px",
+    height: "150px",
 };
 
+// Style for the product link
+const productLink = {
+    color: '#333', // Match item text color
+    textDecoration: 'none', // Remove underline
+};
+
+
 const totalsRow = {
-  margin: "6px 0",
-  display: "flex",
-  justifyContent: "space-between",
+    margin: "6px 0",
+    display: "flex",
+    justifyContent: "space-between",
 };
 const totalsRowBold = {
-  ...totalsRow,
-  marginTop: "12px",
-  paddingTop: "12px",
-  borderTop: "1px solid #cccccc",
+    ...totalsRow,
+    marginTop: "12px",
+    paddingTop: "12px",
+    borderTop: "1px solid #cccccc",
 };
 
 const totalsLabel = {
-  fontSize: "14px",
-  color: "#555555",
-  textAlign: "left" as const,
-  width: "100px",
+    fontSize: "14px",
+    color: "#555555",
+    textAlign: "left" as const,
 };
 const totalsLabelBold = {
-  ...totalsLabel,
-  fontWeight: "bold",
-  color: "#333333",
+    ...totalsLabel,
+    fontWeight: "bold",
+    color: "#333333",
 };
 
 const totalsValueColumn = {
-  textAlign: "right" as const,
-  width: "100%",
+    textAlign: "right" as const,
+    width: "150px",
 };
 
 const totalsValue = {
-  // Style for the Text component itself
-  fontSize: "14px",
-  color: "#555555",
-  textAlign: "right" as const, // Explicitly set text align here
-  fontWeight: "bold",
-  display: "block",
+    fontSize: "14px",
+    color: "#555555",
+    textAlign: "right" as const,
+    fontWeight: "bold",
+    display: "block",
 };
 const totalsValueBold = {
-  ...totalsValue,
-  fontWeight: "bold",
-  color: "#f5a623",
-  textAlign: "right" as const, // Explicitly set text align here
+    ...totalsValue,
+    fontWeight: "bold",
+    color: "#f5a623", // Use accent color for total
+    textAlign: "right" as const,
 };
 
 const methodRow = {
-  margin: "6px 0",
+    margin: "6px 0",
 };
 
 const methodLabel = {
-  fontSize: "14px",
-  color: "#555555",
-  width: "150px",
-  paddingRight: "10px",
+    fontSize: "14px",
+    color: "#555555",
+    width: "150px",
+    paddingRight: "10px",
 };
 
 const methodValue = {
-  fontSize: "14px",
-  color: "#333333",
-  fontWeight: "bold",
-  textAlign: "right" as const,
+    fontSize: "14px",
+    color: "#333333",
+    fontWeight: "bold",
+    textAlign: "right" as const,
 };
 
 const helpQuestion = {
-  fontSize: "14px",
-  fontWeight: "bold",
-  color: "#333333",
-  marginBottom: "8px",
+    fontSize: "14px",
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: "8px",
 };
 
 const helpAnswer = {
-  fontSize: "14px",
-  lineHeight: "20px",
-  color: "#555555",
-  marginBottom: "15px",
+    fontSize: "14px",
+    lineHeight: "20px",
+    color: "#555555",
+    marginBottom: "15px",
 };
 
 const helpButton = {
