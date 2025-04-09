@@ -560,14 +560,14 @@ export const getAllOrders = async (options: any = {}) => {
   const [orders, total] = await prisma.$transaction([
     prisma.order.findMany({
       where,
-      skip,
-      take,
+      // skip,
+      // take,
       orderBy,
       include: {
         user: { select: { id: true, name: true, email: true } },
         shippingAddress: { select: { receiverName: true, address: true, receiverPhone: true } },
         voucher: { select: { code: true } },
-        _count: { select: { orderItems: true } } // Count items efficiently
+        _count: { select: { orderItems: true } }
       },
     }),
     prisma.order.count({ where }),
