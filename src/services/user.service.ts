@@ -47,8 +47,8 @@ export const getAllUsersService = async (
   const { skip, take, orderBy } = parsePaginationAndSorting(options);
 
   const findManyArgs: Prisma.UserFindManyArgs = {
-    skip,
-    take,
+    // skip,
+    // take,
     select: {
       id: true,
       name: true,

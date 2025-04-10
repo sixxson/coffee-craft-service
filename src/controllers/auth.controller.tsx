@@ -4,6 +4,9 @@ import Joi from "joi";
 import * as jwt from "jsonwebtoken";
 import * as bCrypt from "bcrypt";
 import { hashPassword } from "../utils/utils";
+import { sendEmail } from '../services/email.service'; // Added for email sending
+import WelcomeEmail from '../emails/WelcomeEmail'; // Added email template
+import React from 'react'; // Added for JSX
 
 const prisma = new PrismaClient();
 
@@ -74,9 +77,27 @@ export const register = async (req: Request, res: Response) => {
         secure: true,
       })
       .status(201)
-      .json(userWithoutPass);
+      .json(userWithoutPass); // Send response first
+
+    // Send welcome email asynchronously after response
+    (async () => {
+        try {
+            // Explicitly create the element
+            const emailComponent = <WelcomeEmail userName={user.name} />;
+            await sendEmail({
+                to: user.email,
+                subject: `Chào mừng bạn đến với Coffee Craft!`,
+                react: emailComponent
+            });
+        } catch (emailError) {
+            console.error(`Failed to send welcome email to ${user.email}:`, emailError);
+            // Log error, but don't crash the main request
+        }
+    })();
+
+
   } catch (error) {
-    console.error(error);
+    console.error("Error during registration:", error); // Log the actual error
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -128,6 +149,10 @@ export const login = async (req: Request, res: Response) => {
 
 const generateToken = (userId: string, role: string): string => {
   const secret = process.env.JWT_SECRET!;
+  if (!secret) {
+      console.error("JWT_SECRET is not defined in environment variables!");
+      throw new Error("JWT configuration error."); // Prevent token generation without secret
+  }
   return jwt.sign({ id: userId, role }, secret, {
     expiresIn: TOKEN_EXPIRATION,
   });
@@ -135,7 +160,12 @@ const generateToken = (userId: string, role: string): string => {
 
 export const logout = async (req: Request, res: Response) => {
   res
-    .clearCookie("access_token")
+    .clearCookie("access_token", { // Add cookie options matching the set options for reliable clearing
+        path: "/",
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+    })
     .status(200)
     .json({ message: "Logout successful" });
 };
@@ -145,8 +175,11 @@ export const me = async (req: Request, res: Response) => {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
+  // Use req.user.id which is guaranteed by the authenticate middleware
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   if (!user) {
+    // This case might indicate an issue if req.user exists but DB user doesn't
+    console.error(`User with ID ${req.user.id} found in token but not in DB.`);
     res.status(404).json({ message: "User not found" });
     return;
   }

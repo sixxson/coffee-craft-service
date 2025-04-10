@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, logout, me, register } from "../controllers/auth.controller";
+import { login, logout, me, register } from "../controllers/auth.controller"; // Keep path without extension
 import { authenticate } from "../middlewares/auth.middleware";
 import { validateRequestBody } from "../middlewares/validation.middleware"; // Import validation middleware
 import { loginUserSchema, registerUserSchema } from "../validations/user.validation"; // Import schemas
