@@ -6,7 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -60,8 +59,6 @@ export const WelcomeEmail = ({
             </Section>
           </Section>
 
-          <Hr style={hr} />
-
           <Section style={footer}>
              <Text style={footerText}>
               Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại{' '}
@@ -71,7 +68,7 @@ export const WelcomeEmail = ({
               .
             </Text>
             <Text style={footerText}>
-              © {new Date().getFullYear()} {storeName}. Bảo lưu mọi quyền.
+              © {new Date().getFullYear()} {storeName}
             </Text>
           </Section>
         </Container>
@@ -82,7 +79,7 @@ export const WelcomeEmail = ({
 
 export default WelcomeEmail;
 
-// --- Styles (Similar to Order Confirmation) ---
+// --- Styles (Adjusted Spacing) ---
 const main = {
   backgroundColor: "#ffffff",
   fontFamily: '"Helvetica Neue",Helvetica,Arial,sans-serif',
@@ -91,9 +88,9 @@ const main = {
 const container = {
   backgroundColor: "#ffffff",
   margin: "0 auto",
-  padding: "0",
+  padding: "20px 0 48px", // Increased top/bottom padding
   marginBottom: "64px",
-  maxWidth: "680px",
+  maxWidth: "600px", // Slightly narrower container
 };
 
 const headerSection = {
@@ -112,11 +109,11 @@ const logoCoffee = {
     color: "#1a1a1a",
 };
 const logoCraft = {
-    color: "#f5a623",
+    color: "#f5a623", // Keep accent color
 };
 
 const contentSection = {
-    padding: "20px 30px",
+    padding: "0px 40px", // Increased padding
 };
 
 const heading = {
@@ -124,19 +121,19 @@ const heading = {
   fontWeight: "bold",
   textAlign: "center" as const,
   color: "#1a1a1a",
-  margin: "20px 0",
+  margin: "30px 0", // Increased top/bottom margin
 };
 
 const paragraph = {
   fontSize: "14px",
-  lineHeight: "22px",
+  lineHeight: "24px", // Slightly increased line height
   color: "#333333",
-  margin: "0 0 15px 0",
+  margin: "0 0 20px 0", // Increased bottom margin
 };
 
 const buttonContainer = {
     textAlign: "center" as const,
-    margin: "25px 0",
+    margin: "30px 0", // Increased margin
 };
 
 const button = {
@@ -152,14 +149,10 @@ const button = {
   border: "none",
 };
 
-const hr = {
-  borderColor: "#e6e6e6",
-  margin: "20px 0", // Add margin for HR
-};
 
 const footer = {
-  padding: "20px",
-  marginTop: "20px",
+  padding: "20px 30px",
+  marginTop: "10px",
   borderTop: "1px solid #e6e6e6",
 };
 
