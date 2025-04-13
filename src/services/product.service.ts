@@ -311,14 +311,14 @@ async function updateProductImage(imageId: string, data: any): Promise<void> {
 
   if (!imageId) throw new Error("Image ID is required");
 
-  if (isThumbnail) {
-    await prisma.productImage.updateMany({
-      where: { productId: productId, id: { not: imageId } },
-      data: {
-        isThumbnail: false,
-      },
-    });
-  }
+  // if (isThumbnail) {
+  //   await prisma.productImage.updateMany({
+  //     where: { productId: productId, id: { not: imageId } },
+  //     data: {
+  //       isThumbnail: false,
+  //     },
+  //   });
+  // }
 
   await prisma.productImage.update({
     where: { id: imageId },
