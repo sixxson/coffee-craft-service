@@ -17,6 +17,8 @@ interface RevenueSummary {
   totalRevenue: number;
   totalOrders: number;
   averageOrderValue: number;
+  repeatPurchaseRate: number;
+  conversionRate: number; // Placeholder - requires site visit tracking for accurate calculation
 }
 
 interface RevenueByPaymentMethod {
@@ -73,12 +75,62 @@ export const getRevenueSummary = async (query: PeriodQuery): Promise<RevenueSumm
   const totalOrders = aggregation._count.id || 0;
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
+  // Calculate Repeat Purchase Rate
+  // Count unique customers with at least one order
+  const uniqueCustomers = await prisma.order.findMany({
+    select: {
+      userId: true,
+    },
+    where: {
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: {
+        in: relevantStatuses,
+      },
+    },
+    distinct: ['userId'],
+  });
+
+  const totalCustomersWithOrders = uniqueCustomers.length;
+
+  // Count unique customers with two or more orders
+  const customersWithMultipleOrders = await prisma.order.groupBy({
+    by: ['userId'],
+    where: {
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: {
+        in: relevantStatuses,
+      },
+    },
+    having: {
+      userId: {
+        _count: {
+          gt: 1,
+        },
+      },
+    },
+  });
+
+  const repeatPurchaseRate = totalCustomersWithOrders > 0
+    ? (customersWithMultipleOrders.length / totalCustomersWithOrders) * 100
+    : 0;
+
+  // Conversion Rate - Placeholder as it typically requires site visit data
+  const conversionRate = 0; // Replace with actual calculation if site visit data becomes available
+
   return {
     startDate,
     endDate,
     totalRevenue,
     totalOrders,
     averageOrderValue,
+    repeatPurchaseRate,
+    conversionRate,
   };
 };
 

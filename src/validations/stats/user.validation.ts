@@ -41,6 +41,7 @@ const getRoleDistribution = {
 const getTopSpenders = {
   query: periodQuerySchema.keys({ // Extend the base period schema
     limit: Joi.number().integer().min(1).max(100).optional().default(10),
+    sortBy: Joi.string().valid('totalSpent', 'orderCount').optional().default('totalSpent'),
   }),
 };
 

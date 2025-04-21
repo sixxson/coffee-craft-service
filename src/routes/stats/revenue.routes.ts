@@ -63,6 +63,12 @@ router.use(authenticate, isStaffOrAdmin);
  *                   type: integer
  *                 averageOrderValue:
  *                   type: number
+ *                 repeatPurchaseRate:
+ *                   type: number
+ *                   description: Percentage of customers who made more than one purchase in the period.
+ *                 conversionRate:
+ *                   type: number
+ *                   description: Placeholder - requires site visit tracking for accurate calculation.
  */
 router.get('/summary', validateRequestQuery(revenueValidation.getRevenueSummary.query), revenueController.getRevenueSummary); // Pass the .query schema
 

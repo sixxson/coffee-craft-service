@@ -15,6 +15,7 @@ interface ValidatedTopSpendersQuery {
     startDate?: string;
     endDate?: string;
     limit: number; // Defaulted by Joi
+    sortBy: 'totalSpent' | 'orderCount'; // Defaulted by Joi
 }
 
 interface ValidatedNewRegistrationsQuery {
@@ -55,6 +56,7 @@ export const getTopSpenders = async (req: Request, res: Response, next: NextFunc
         const queryParams = req.validatedQuery as ValidatedTopSpendersQuery;
         const result = await userService.getTopSpenders(
             queryParams.limit,
+            queryParams.sortBy, // Pass sortBy to the service
             queryParams.period,
             queryParams.startDate,
             queryParams.endDate
