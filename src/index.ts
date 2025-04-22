@@ -23,6 +23,8 @@ import productStatsRoutes from "./routes/stats/product.routes"; // Import produc
 import userStatsRoutes from "./routes/stats/user.routes"; // Import user stats routes
 import voucherStatsRoutes from "./routes/stats/voucher.routes"; // Import voucher stats routes
 import reviewStatsRoutes from "./routes/stats/review.routes"; // Import review stats routes
+// Nếu bạn muốn rõ ràng hơn
+import productVariantRouter from "./routes/productVariant.routes";
 
 dotenv.config();
 
@@ -71,7 +73,7 @@ app.use("/stats/products", productStatsRoutes);
 app.use("/stats/users", userStatsRoutes);
 app.use("/stats/vouchers", voucherStatsRoutes);
 app.use("/stats/reviews", reviewStatsRoutes);
-
+app.use("/productValidation", productVariantRouter);
 // --- Swagger UI Setup ---
 // Serve Swagger UI at /api-docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

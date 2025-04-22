@@ -60,7 +60,10 @@ const router = Router();
  *       401: { description: Unauthorized }
  *       403: { description: Forbidden }
  */
-router.get("/", authenticate, isStaffOrAdmin, getAllUsers);
+router.get("/",
+  authenticate,
+  // isStaffOrAdmin,
+  getAllUsers);
 
 /**
  * @swagger
