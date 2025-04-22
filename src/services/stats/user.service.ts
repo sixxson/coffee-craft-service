@@ -124,6 +124,7 @@ export const getRoleDistribution = async (): Promise<RoleDistribution[]> => {
 // Function for Top Spenders
 export const getTopSpenders = async (
     limit: number,
+    sortBy: 'totalSpent' | 'orderCount' = 'totalSpent', // Add sortBy parameter with default
     period?: Period,
     customStartDate?: string,
     customEndDate?: string
@@ -156,9 +157,17 @@ export const getTopSpenders = async (
             id: true, // Count number of orders
         },
         orderBy: {
-            _sum: {
-                finalTotal: 'desc',
-            },
+            // Sort based on the sortBy parameter
+            ...(sortBy === 'totalSpent' && {
+                _sum: {
+                    finalTotal: 'desc',
+                },
+            }),
+            ...(sortBy === 'orderCount' && {
+                _count: {
+                    id: 'desc',
+                },
+            }),
         },
         take: limit,
     });
@@ -193,21 +202,16 @@ export const getTopSpenders = async (
         };
     });
 
-     // Re-sort based on the original aggregation order because findMany doesn't guarantee order
-     const sortedData = data.sort((a, b) => {
-        const indexA = spendingAggregation.findIndex(item => item.userId === a.userId);
-        const indexB = spendingAggregation.findIndex(item => item.userId === b.userId);
-        return indexA - indexB;
-    });
-
+    // The data is already sorted by the Prisma query, no need to re-sort here.
 
     return {
         startDate,
         endDate,
         limit,
-        data: sortedData,
+        data: data, // Use the directly mapped data
     };
 };
+
 
 // Function for New Registrations Trend
 export const getNewRegistrations = async (

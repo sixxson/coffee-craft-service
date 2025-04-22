@@ -117,6 +117,13 @@ router.get(
  *           maximum: 100
  *           default: 10
  *         description: Maximum number of users to return.
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [totalSpent, orderCount]
+ *           default: totalSpent
+ *         description: Field to sort top customers by.
  *     responses:
  *       200:
  *         description: List of top spending users.
