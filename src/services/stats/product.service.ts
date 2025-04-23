@@ -158,6 +158,7 @@ export const getTopSellingProducts = async (
             id: true,
             name: true,
             sku: true,
+            images: true,
         },
     });
     const productMap = new Map(products.map(p => [p.id, p]));
@@ -171,6 +172,7 @@ export const getTopSellingProducts = async (
             sku: product?.sku ?? 'N/A',
             totalQuantitySold: item._sum.quantity ?? 0,
             totalRevenue: item._sum.subTotal ?? new Decimal(0),
+            imageUrl: product?.images[0]?.url ?? null,
         };
     });
 
