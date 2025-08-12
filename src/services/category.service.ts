@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from "@prisma/client"; // Import Prisma
+import { Prisma, PrismaClient } from "@prisma/client"; // Import Prisma
 import * as XLSX from "xlsx";
 import { parsePaginationAndSorting } from "../utils/utils"; // Import helper
 
@@ -176,12 +176,6 @@ async function downloadCategoryTemplate(): Promise<Buffer> {
 }
 
 export {
-  getAllCategories,
-  getCategoryById,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  exportCategoriesToExcel,
-  importCategoriesFromExcel,
-  downloadCategoryTemplate,
+  createCategory, deleteCategory, downloadCategoryTemplate, exportCategoriesToExcel, getAllCategories,
+  getCategoryById, importCategoriesFromExcel, updateCategory
 };
