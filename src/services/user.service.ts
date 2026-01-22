@@ -152,24 +152,19 @@ export const updateUserService = async (
   // Handle password update logic
   if (data.password) {
     // If the user is a customer, validate old password
-    if (requestingUserRole === "CUSTOMER") {
-      // Use requestingUserRole
-      if (!data.oldPassword) {
-        // Throw standard error with statusCode
-        throw Object.assign(new Error("Old password is required"), {
-          statusCode: 400,
-        });
-      }
-      const passwordMatch = await bCrypt.compare(
-        data.oldPassword,
-        user.password
-      );
-      if (!passwordMatch) {
-        // Throw standard error with statusCode
-        throw Object.assign(new Error("Old password is incorrect"), {
-          statusCode: 401,
-        });
-      }
+    // Use requestingUserRole
+    if (!data.oldPassword) {
+      // Throw standard error with statusCode
+      throw Object.assign(new Error("Old password is required"), {
+        statusCode: 400,
+      });
+    }
+    const passwordMatch = await bCrypt.compare(data.oldPassword, user.password);
+    if (!passwordMatch) {
+      // Throw standard error with statusCode
+      throw Object.assign(new Error("Old password is incorrect"), {
+        statusCode: 403,
+      });
     }
     // Hash the new password
     updateData.password = await hashPassword(data.password);

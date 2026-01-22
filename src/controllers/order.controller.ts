@@ -46,7 +46,7 @@ export const handleCreateOrder = asyncHandler(async (req: Request, res: Response
 // @access  Private (Staff/Admin)
 export const handleGetAllOrders = asyncHandler(async (req: Request, res: Response) => {
     // Authorization is handled by the isStaffOrAdmin middleware in the route
-    const orders = await getAllOrders();
+    const orders = await getAllOrders(req.query);
     res.status(200).json(orders);
     // No specific error handling needed here unless getAllOrders throws something specific
 });
